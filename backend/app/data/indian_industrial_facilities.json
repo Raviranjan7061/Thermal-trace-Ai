@@ -1,0 +1,202 @@
+[
+  {
+    "name": "Jamnagar Refinery & Petrochemical Complex",
+    "facility_type": "refinery",
+    "latitude": 22.3553,
+    "longitude": 69.8322,
+    "state": "Gujarat",
+    "district": "Jamnagar",
+    "operator_owner": "Reliance Industries Limited",
+    "source_dataset": "OpenStreetMap & Global Energy Infrastructure Registry"
+  },
+  {
+    "name": "Mundra Thermal Power & Industrial Complex",
+    "facility_type": "power_plant",
+    "latitude": 22.8222,
+    "longitude": 69.5494,
+    "state": "Gujarat",
+    "district": "Kutch",
+    "operator_owner": "Adani Power / Tata Power",
+    "source_dataset": "Global Power Plant Database (WRI)"
+  },
+  {
+    "name": "Hazira Petrochemical & LNG Terminal",
+    "facility_type": "petrochemical",
+    "latitude": 21.1097,
+    "longitude": 72.6453,
+    "state": "Gujarat",
+    "district": "Surat",
+    "operator_owner": "RIL / Shell / ONGC",
+    "source_dataset": "OpenStreetMap Industrial Registry"
+  },
+  {
+    "name": "Koyali Refinery (Vadodara)",
+    "facility_type": "refinery",
+    "latitude": 22.3789,
+    "longitude": 73.1311,
+    "state": "Gujarat",
+    "district": "Vadodara",
+    "operator_owner": "Indian Oil Corporation Limited (IOCL)",
+    "source_dataset": "Global Energy Infrastructure Registry"
+  },
+  {
+    "name": "Mathura Refinery",
+    "facility_type": "refinery",
+    "latitude": 27.4111,
+    "longitude": 77.6744,
+    "state": "Uttar Pradesh",
+    "district": "Mathura",
+    "operator_owner": "Indian Oil Corporation Limited (IOCL)",
+    "source_dataset": "OpenStreetMap & IOCL Registry"
+  },
+  {
+    "name": "Panipat Refinery & Petrochemical Complex",
+    "facility_type": "refinery",
+    "latitude": 29.4756,
+    "longitude": 76.8772,
+    "state": "Haryana",
+    "district": "Panipat",
+    "operator_owner": "Indian Oil Corporation Limited (IOCL)",
+    "source_dataset": "OpenStreetMap & IOCL Registry"
+  },
+  {
+    "name": "Barauni Refinery",
+    "facility_type": "refinery",
+    "latitude": 25.4678,
+    "longitude": 86.0125,
+    "state": "Bihar",
+    "district": "Begusarai",
+    "operator_owner": "IOCL",
+    "source_dataset": "Global Energy Infrastructure Registry"
+  },
+  {
+    "name": "Haldia Refinery & Chemical Hub",
+    "facility_type": "refinery",
+    "latitude": 22.0622,
+    "longitude": 88.0789,
+    "state": "West Bengal",
+    "district": "Purba Medinipur",
+    "operator_owner": "IOCL / Haldia Petrochemicals",
+    "source_dataset": "OpenStreetMap & WBIIDC"
+  },
+  {
+    "name": "Paradip Refinery & Petrochemical Complex",
+    "facility_type": "refinery",
+    "latitude": 20.2889,
+    "longitude": 86.6333,
+    "state": "Odisha",
+    "district": "Jagatsinghpur",
+    "operator_owner": "Indian Oil Corporation Limited (IOCL)",
+    "source_dataset": "OpenStreetMap Industrial Registry"
+  },
+  {
+    "name": "Visakhapatnam Refinery & Steel Complex",
+    "facility_type": "steel_plant",
+    "latitude": 17.6889,
+    "longitude": 83.2189,
+    "state": "Andhra Pradesh",
+    "district": "Visakhapatnam",
+    "operator_owner": "RINL / HPCL",
+    "source_dataset": "Global Energy Infrastructure Registry"
+  },
+  {
+    "name": "Tatipaka Oil & Gas Gas-Collecting Station",
+    "facility_type": "lng_facility",
+    "latitude": 16.4833,
+    "longitude": 81.8833,
+    "state": "Andhra Pradesh",
+    "district": "East Godavari",
+    "operator_owner": "ONGC",
+    "source_dataset": "ONGC Public Asset Registry"
+  },
+  {
+    "name": "Manali Industrial & Refinery Hub (Chennai)",
+    "facility_type": "refinery",
+    "latitude": 13.1689,
+    "longitude": 80.2622,
+    "state": "Tamil Nadu",
+    "district": "Chennai",
+    "operator_owner": "CPCL / IOCL",
+    "source_dataset": "OpenStreetMap Industrial Registry"
+  },
+  {
+    "name": "Neyveli Lignite Mine & Power Station",
+    "facility_type": "mine",
+    "latitude": 11.6022,
+    "longitude": 79.4889,
+    "state": "Tamil Nadu",
+    "district": "Cuddalore",
+    "operator_owner": "NLC India Limited",
+    "source_dataset": "Global Power Plant Database"
+  },
+  {
+    "name": "Kochi Refinery & Petrochemical Complex",
+    "facility_type": "refinery",
+    "latitude": 9.9722,
+    "longitude": 76.3589,
+    "state": "Kerala",
+    "district": "Ernakulam",
+    "operator_owner": "Bharat Petroleum Corporation Limited (BPCL)",
+    "source_dataset": "BPCL Facility Directory"
+  },
+  {
+    "name": "Mumbai Refinery & Trombay Industrial Zone",
+    "facility_type": "refinery",
+    "latitude": 19.0022,
+    "longitude": 72.8889,
+    "state": "Maharashtra",
+    "district": "Mumbai Suburban",
+    "operator_owner": "BPCL / HPCL / Tata Power",
+    "source_dataset": "OpenStreetMap Industrial Registry"
+  },
+  {
+    "name": "Korba Super Thermal Power & Aluminium Complex",
+    "facility_type": "power_plant",
+    "latitude": 22.3589,
+    "longitude": 82.6889,
+    "state": "Chhattisgarh",
+    "district": "Korba",
+    "operator_owner": "NTPC / BALCO",
+    "source_dataset": "NTPC Power Registry"
+  },
+  {
+    "name": "Singrauli Coal Mine & Thermal Power Station",
+    "facility_type": "power_plant",
+    "latitude": 24.2022,
+    "longitude": 82.6789,
+    "state": "Madhya Pradesh",
+    "district": "Singrauli",
+    "operator_owner": "NTPC / Northern Coalfields",
+    "source_dataset": "Global Power Plant Database"
+  },
+  {
+    "name": "Bhilai Steel Plant",
+    "facility_type": "steel_plant",
+    "latitude": 21.1833,
+    "longitude": 81.3833,
+    "state": "Chhattisgarh",
+    "district": "Durg",
+    "operator_owner": "Steel Authority of India Limited (SAIL)",
+    "source_dataset": "SAIL Industrial Registry"
+  },
+  {
+    "name": "Rourkela Steel Plant",
+    "facility_type": "steel_plant",
+    "latitude": 22.2167,
+    "longitude": 84.8667,
+    "state": "Odisha",
+    "district": "Sundargarh",
+    "operator_owner": "SAIL",
+    "source_dataset": "SAIL Industrial Registry"
+  },
+  {
+    "name": "Jamshedpur Tata Steel Works",
+    "facility_type": "steel_plant",
+    "latitude": 22.7833,
+    "longitude": 86.2000,
+    "state": "Jharkhand",
+    "district": "East Singhbhum",
+    "operator_owner": "Tata Steel",
+    "source_dataset": "OpenStreetMap Industrial Registry"
+  }
+]

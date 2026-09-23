@@ -1,0 +1,37 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+ENV/
+
+# Node & Frontend
+node_modules/
+dist/
+build/
+.cache/
+
+# Databases & Storage
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
