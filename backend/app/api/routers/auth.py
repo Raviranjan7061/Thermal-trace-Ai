@@ -13,6 +13,11 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+class GoogleLoginRequest(BaseModel):
+    email: EmailStr
+    full_name: Optional[str] = None
+    firebase_uid: Optional[str] = None
+
 class SignupRequest(BaseModel):
     full_name: str
     email: EmailStr
@@ -90,6 +95,75 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         entity_id=user.id,
         details={"role": user.role}
     )
+
+    user_schema = UserSchema(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        role=user.role,
+        is_active=user.is_active,
+        created_at=user.created_at.isoformat() if user.created_at else ""
+    )
+
+    return LoginResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=user_schema
+    )
+
+@router.post("/google", response_model=LoginResponse)
+def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
+    email_clean = payload.email.strip().lower()
+    user = db.query(User).filter(User.email == email_clean).first()
+
+    if user:
+        if not user.is_active:
+            log_security_event(
+                db=db,
+                action="LOGIN_FAILURE",
+                actor_email=email_clean,
+                entity_id=user.id,
+                details={"reason": "Deactivated user Google login attempt"}
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account is deactivated. Contact system administrator."
+            )
+
+        if payload.full_name and (not user.full_name or user.full_name == user.email):
+            user.full_name = payload.full_name.strip()
+            db.commit()
+            db.refresh(user)
+    else:
+        full_name = payload.full_name.strip() if payload.full_name else email_clean.split('@')[0]
+        user = User(
+            email=email_clean,
+            hashed_password=get_password_hash("GOOGLE_SSO_AUTHENTICATED_USER"),
+            full_name=full_name,
+            role="user",
+            is_active=True
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        log_security_event(
+            db=db,
+            action="GOOGLE_USER_AUTOPROVISIONED",
+            actor_email=user.email,
+            entity_id=user.id,
+            details={"assigned_role": "user"}
+        )
+
+    log_security_event(
+        db=db,
+        action="GOOGLE_LOGIN_SUCCESS",
+        actor_email=user.email,
+        entity_id=user.id,
+        details={"role": user.role}
+    )
+
+    access_token = create_access_token(subject=user.id, role=user.role)
 
     user_schema = UserSchema(
         id=user.id,

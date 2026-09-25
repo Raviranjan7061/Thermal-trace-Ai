@@ -208,3 +208,34 @@ def test_email_containing_authority_with_analyst_role(setup_test_users):
     db.close()
     assert user is not None
     assert user.role == "analyst"
+
+
+def test_google_login_existing_role(setup_test_users):
+    response = client.post("/api/auth/google", json={
+        "email": "test_admin@thermaltrace.ai",
+        "full_name": "Test Admin Google",
+        "firebase_uid": "fb_uid_12345"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert data["user"]["role"] == "admin"
+
+
+def test_google_login_new_user():
+    response = client.post("/api/auth/google", json={
+        "email": "new_public_google_user@gmail.com",
+        "full_name": "New Google User",
+        "firebase_uid": "fb_uid_67890"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert data["user"]["role"] == "user"
+
+    # Cleanup
+    db = SessionLocal()
+    db.query(User).filter(User.email == "new_public_google_user@gmail.com").delete()
+    db.commit()
+    db.close()
+

@@ -131,29 +131,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const email = fbUser.email || '';
 
-    // 2. Check if a backend session exists
-    const token = localStorage.getItem('thermaltrace_token');
-    if (token) {
-      try {
-        const dbUser = await apiService.getCurrentUser();
-        setUser(dbUser);
-        return dbUser;
-      } catch (err) {
-        // ignore
-      }
-    }
+    // 2. Exchange credentials with backend to look up real user role & token
+    try {
+      const res = await apiService.googleLogin({
+        email,
+        full_name: fbUser.displayName || undefined,
+        firebase_uid: fbUser.uid
+      });
 
-    // Strict RBAC: Google authenticated users map to 'user' role by default (NO auto role escalation)
-    const googleUser: User = {
-      id: fbUser.uid,
-      email: email,
-      full_name: fbUser.displayName || email.split('@')[0] || 'Google User',
-      role: 'user', // Safe default public role - NO auto elevation!
-      is_active: true,
-      created_at: new Date().toISOString()
-    };
-    setUser(googleUser);
-    return googleUser;
+      localStorage.setItem('thermaltrace_token', res.access_token);
+      setUser(res.user);
+      return res.user;
+    } catch (err) {
+      console.warn('Backend Google login validation failed, falling back to local session check:', err);
+      const token = localStorage.getItem('thermaltrace_token');
+      if (token) {
+        try {
+          const dbUser = await apiService.getCurrentUser();
+          setUser(dbUser);
+          return dbUser;
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      const googleUser: User = {
+        id: fbUser.uid,
+        email: email,
+        full_name: fbUser.displayName || email.split('@')[0] || 'Google User',
+        role: 'user',
+        is_active: true,
+        created_at: new Date().toISOString()
+      };
+      setUser(googleUser);
+      return googleUser;
+    }
   };
 
   const logout = async () => {

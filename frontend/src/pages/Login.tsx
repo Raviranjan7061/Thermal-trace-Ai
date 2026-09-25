@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Eye,
   EyeOff,
@@ -25,10 +25,27 @@ import refineryBg from '../assets/refinery_hero_bg.jpg';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { login, loginWithGoogle, signup, logout, resetPassword } = useAuth();
 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [activeRoleMode, setActiveRoleMode] = useState<RoleMode>('user');
+
+  // Read selected role context from URL query parameter or saved login intent in sessionStorage
+  const queryParamRole = searchParams.get('role');
+  const storedIntent = sessionStorage.getItem('thermaltrace_login_intent');
+
+  const rawRole = (queryParamRole || storedIntent || 'user').toLowerCase();
+  const activeRoleMode: RoleMode =
+    rawRole === 'analyst' || rawRole === 'authority' || rawRole === 'admin'
+      ? (rawRole as RoleMode)
+      : 'user';
+
+  const handleSelectRole = (selectedRole: RoleMode) => {
+    sessionStorage.setItem('thermaltrace_login_intent', selectedRole);
+    setSearchParams({ role: selectedRole });
+    setMode('signin');
+    setError(null);
+  };
 
   // Sign In State - ALWAYS EMPTY ON FRESH LOAD
   const [loginEmail, setLoginEmail] = useState('');
@@ -121,7 +138,7 @@ export const LoginPage: React.FC = () => {
           authority: 'Authority',
           admin: 'Admin'
         };
-        setError(`This account does not have ${roleNames[activeRoleMode] || activeRoleMode} access.`);
+        setError(`This account does not have ${roleNames[activeRoleMode] || activeRoleMode} access. Unauthorized for this workspace.`);
         return;
       }
 
@@ -162,7 +179,7 @@ export const LoginPage: React.FC = () => {
           authority: 'Authority',
           admin: 'Admin'
         };
-        setError(`This Google account does not have ${roleNames[activeRoleMode] || activeRoleMode} access.`);
+        setError(`This Google account does not have ${roleNames[activeRoleMode] || activeRoleMode} access. Unauthorized for this workspace.`);
         return;
       }
 
@@ -393,11 +410,7 @@ export const LoginPage: React.FC = () => {
             <div className="mt-auto pt-3">
               <RoleExplanationCards
                 activeRoleMode={activeRoleMode}
-                onSelectRole={(selectedRole) => {
-                  setActiveRoleMode(selectedRole);
-                  setMode('signin');
-                  setError(null);
-                }}
+                onSelectRole={handleSelectRole}
               />
             </div>
           </div>
