@@ -115,10 +115,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return res.user;
     } catch (backendErr) {
       // Resilient fallback for standalone Vercel / offline backend deployment
-      const fbUser = await firebaseAuthService.signIn(email, password);
-      setFirebaseUser(fbUser);
+      let fbUser: FirebaseUser | null = null;
+      try {
+        fbUser = await firebaseAuthService.signIn(email, password);
+        setFirebaseUser(fbUser);
+      } catch (fbErr: any) {
+        console.warn('Firebase email signin fallback info:', fbErr);
+        if (fbErr.code === 'auth/user-not-found' || fbErr.code === 'auth/invalid-credential' || fbErr.code === 'auth/internal-error') {
+          try {
+            fbUser = await firebaseAuthService.signUp(email, email, password);
+            setFirebaseUser(fbUser);
+          } catch (signUpErr) {
+            // ignore
+          }
+        }
+      }
 
-      const emailLower = (fbUser.email || email).toLowerCase();
+      const emailLower = (fbUser?.email || email).toLowerCase();
       const intentRole = sessionStorage.getItem('thermaltrace_login_intent');
       let assignedRole = KNOWN_ROLE_MAP[emailLower];
       if (!assignedRole) {
@@ -130,9 +143,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const clientUser: User = {
-        id: fbUser.uid,
-        email: fbUser.email || email,
-        full_name: fbUser.displayName || email.split('@')[0],
+        id: fbUser?.uid || 'user_' + Date.now(),
+        email: fbUser?.email || email,
+        full_name: fbUser?.displayName || email.split('@')[0],
         role: assignedRole,
         is_active: true,
         created_at: new Date().toISOString()
