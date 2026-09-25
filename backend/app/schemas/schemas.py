@@ -247,6 +247,7 @@ class AnalyticsOverview(BaseModel):
     total_detections: int
     active_anomalies_count: int = 0
     avg_frp: Optional[float] = None
+    baseline_expected_mean: Optional[float] = None
     high_critical_count: int = 0
     persistent_sources_count: int = 0
     sudden_events_count: int = 0

@@ -15,10 +15,10 @@ export const DataSourcesPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto custom-scrollbar overflow-y-auto h-full">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto custom-scrollbar overflow-y-auto h-full text-slate-900 dark:text-slate-100 select-none bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       <div>
-        <h1 className="text-xl font-bold text-white">Data Sources & Provenance Transparency</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Data Sources & Provenance Transparency</h1>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Complete attribution, synchronization status, known limitations, and provenance of integrated geospatial data feeds
         </p>
       </div>
@@ -30,43 +30,43 @@ export const DataSourcesPage: React.FC = () => {
           {sources.map((src, idx) => (
             <div
               key={idx}
-              className="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-3 shadow-lg"
+              className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm dark:shadow-lg"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-bold text-sm text-white">{src.name}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">{src.purpose}</p>
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">{src.name}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{src.purpose}</p>
                 </div>
                 <span
                   className={`text-[11px] font-bold px-2.5 py-1 rounded border ${
                     src.status === 'Active' || src.status === 'Available'
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                      : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+                      : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400'
                   }`}
                 >
                   {src.status}
                 </span>
               </div>
 
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800/80 space-y-1.5 text-xs">
-                <div className="flex justify-between text-slate-400">
+              <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-200 dark:border-slate-800/80 space-y-1.5 text-xs">
+                <div className="flex justify-between text-slate-500 dark:text-slate-400">
                   <span>Records Stored</span>
-                  <span className="font-semibold text-slate-200">{src.records_loaded}</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-200">{src.records_loaded}</span>
                 </div>
-                <div className="flex justify-between text-slate-400">
+                <div className="flex justify-between text-slate-500 dark:text-slate-400">
                   <span>Attribution</span>
-                  <span className="text-slate-300 font-medium">{src.attribution}</span>
+                  <span className="text-slate-800 dark:text-slate-300 font-medium">{src.attribution}</span>
                 </div>
                 {src.last_sync && (
-                  <div className="flex justify-between text-slate-400 font-mono text-[11px]">
+                  <div className="flex justify-between text-slate-500 dark:text-slate-400 font-mono text-[11px]">
                     <span>Last Sync</span>
-                    <span className="text-amber-400">{src.last_sync}</span>
+                    <span className="text-amber-600 dark:text-amber-400">{src.last_sync}</span>
                   </div>
                 )}
               </div>
 
-              <div className="text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 text-slate-400 space-y-1">
-                <span className="font-semibold text-slate-300 block text-[11px]">Known Source Limitations:</span>
+              <div className="text-xs bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 space-y-1">
+                <span className="font-semibold text-slate-700 dark:text-slate-300 block text-[11px]">Known Source Limitations:</span>
                 <p className="text-[11px] leading-relaxed">{src.known_limitations}</p>
               </div>
             </div>

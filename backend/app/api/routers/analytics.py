@@ -38,35 +38,56 @@ def get_analytics_overview(
             ClassificationResult.probable_classification.ilike(f"%{classification}%")
         )
 
+    if priority and priority.upper() != "ALL":
+        query = query.join(Alert, Alert.hotspot_id == Hotspot.hotspot_id).filter(
+            Alert.priority.ilike(f"%{priority}%")
+        )
+
     hotspots = query.order_by(desc(Hotspot.acquisition_datetime)).all()
     total_detections = len(hotspots)
+    filtered_hotspot_ids = [h.hotspot_id for h in hotspots]
 
     # 2. Key Metrics
     frp_vals = [h.frp for h in hotspots if h.frp is not None and h.frp > 0]
     avg_frp = round(float(sum(frp_vals) / len(frp_vals)), 1) if frp_vals else None
 
-    # Alerts query
-    alert_query = db.query(Alert)
+    # Alerts query matching filtered hotspots
+    alert_query = db.query(Alert).join(Hotspot, Alert.hotspot_id == Hotspot.hotspot_id)
+    if days > 0:
+        cutoff = now - timedelta(days=days)
+        alert_query = alert_query.filter(Hotspot.acquisition_datetime >= cutoff)
+    if satellite and satellite.upper() != "ALL":
+        alert_query = alert_query.filter(Hotspot.satellite.ilike(f"%{satellite}%"))
+    if daynight and daynight.upper() != "ALL":
+        alert_query = alert_query.filter(Hotspot.daynight == daynight.upper())
+    if classification and classification.upper() != "ALL":
+        alert_query = alert_query.join(ClassificationResult, ClassificationResult.hotspot_id == Hotspot.hotspot_id).filter(
+            ClassificationResult.probable_classification.ilike(f"%{classification}%")
+        )
     if priority and priority.upper() != "ALL":
-        alert_query = alert_query.filter(Alert.priority == priority.upper())
+        alert_query = alert_query.filter(Alert.priority.ilike(f"%{priority}%"))
 
     active_alerts = alert_query.filter(Alert.status.in_(["NEW", "ACKNOWLEDGED", "INVESTIGATING", "New", "Acknowledged", "Investigating"])).all()
     active_anomalies_count = len(active_alerts)
     high_critical_count = sum(1 for a in active_alerts if (a.priority or "").upper() in ["HIGH", "CRITICAL"])
 
-    # Classification counts
-    cls_query = db.query(ClassificationResult)
-    if days > 0:
-        cutoff = now - timedelta(days=days)
-        cls_query = cls_query.join(Hotspot).filter(Hotspot.acquisition_datetime >= cutoff)
+    # Classification counts for filtered hotspots
+    if filtered_hotspot_ids:
+        cls_results = db.query(ClassificationResult).filter(ClassificationResult.hotspot_id.in_(filtered_hotspot_ids)).all()
+    else:
+        cls_results = []
 
-    cls_results = cls_query.all()
     industrial_candidates = sum(1 for c in cls_results if c.probable_classification in ["Industrial Fire", "Persistent Gas Flare", "Industrial/Mining Thermal Activity"])
     natural_fire_candidates = sum(1 for c in cls_results if c.probable_classification in ["Wildfire", "Crop Burning"])
-    needs_review_count = sum(1 for c in cls_results if "Unknown" in c.probable_classification or "Review" in c.probable_classification)
+    needs_review_count = sum(1 for c in cls_results if "Unknown" in (c.probable_classification or "") or "Review" in (c.probable_classification or ""))
 
-    # 3. Persistent vs Sudden Cluster counts
-    temp_feats = db.query(TemporalFeature).all()
+    # 3. Persistent vs Sudden Cluster counts & Baseline Expected Mean
+    cluster_ids = [h.cluster_id for h in hotspots if h.cluster_id]
+    if cluster_ids:
+        temp_feats = db.query(TemporalFeature).filter(TemporalFeature.cluster_id.in_(cluster_ids)).all()
+    else:
+        temp_feats = db.query(TemporalFeature).all() if (satellite == "all" and classification == "all" and priority == "all" and daynight == "all") else []
+
     persistent_sources_count = sum(1 for tf in temp_feats if tf.persistence_score >= 0.5)
     sudden_events_count = sum(1 for tf in temp_feats if tf.persistence_score < 0.5)
 
@@ -80,6 +101,19 @@ def get_analytics_overview(
         "persistent_pct": persistent_pct,
         "sudden_pct": sudden_pct
     }
+
+    # Baseline expected mean calculation from cluster historical baselines
+    baseline_frp_vals = [
+        tf.median_frp for tf in temp_feats
+        if tf.median_frp is not None and tf.median_frp > 0
+    ]
+    if not baseline_frp_vals:
+        baseline_frp_vals = [
+            tf.baseline_frp for tf in temp_feats
+            if tf.baseline_frp is not None and tf.baseline_frp > 0
+        ]
+
+    baseline_expected_mean = round(float(sum(baseline_frp_vals) / len(baseline_frp_vals)), 1) if baseline_frp_vals else None
 
     # 4. Time Series Aggregation (Daily)
     time_series_map: Dict[str, Dict[str, Any]] = {}
@@ -107,7 +141,7 @@ def get_analytics_overview(
     cls_frp_counts: Dict[str, int] = {}
 
     for c in cls_results:
-        cat = c.probable_classification
+        cat = c.probable_classification or "Unclassified"
         cls_counts[cat] = cls_counts.get(cat, 0) + 1
         h = c.hotspot
         if h and h.frp and h.frp > 0:
@@ -142,9 +176,20 @@ def get_analytics_overview(
         "night_pct": round((night_count / tot_dn) * 100, 1) if total_detections > 0 else 0.0
     }
 
-    # 7. Top Anomalies (Recent)
+    # 7. Top Anomalies (Ranked by Priority & FRP)
     top_anomalies = []
-    top_alerts = db.query(Alert).options(joinedload(Alert.hotspot)).order_by(desc(Alert.created_at)).limit(5).all()
+    priority_order = {"CRITICAL": 0, "HIGH": 1, "MODERATE": 2, "LOW": 3}
+    all_matching_alerts = alert_query.options(joinedload(Alert.hotspot)).all()
+
+    sorted_alerts = sorted(
+        all_matching_alerts,
+        key=lambda a: (
+            priority_order.get((a.priority or "").upper(), 4),
+            -(a.hotspot.frp if a.hotspot and a.hotspot.frp else 0)
+        )
+    )
+    top_alerts = sorted_alerts[:10]
+
     for a in top_alerts:
         h = a.hotspot
         cls = db.query(ClassificationResult).filter(ClassificationResult.hotspot_id == h.hotspot_id).first() if h else None
@@ -160,7 +205,7 @@ def get_analytics_overview(
             "baseline": f"{tf.median_frp:.1f}" if tf and tf.median_frp else "Insufficient History",
             "deviation": f"+{tf.baseline_deviation:.0f}%" if tf and tf.baseline_deviation else "N/A",
             "classification": cls.probable_classification if cls else "Unknown",
-            "priority": a.priority or "MODERATE",
+            "priority": (a.priority or "MODERATE").upper(),
             "status": a.status or "NEW",
             "detected": h.acquisition_datetime.strftime("%d %b %Y, %H:%M") if h else a.created_at.strftime("%d %b %Y, %H:%M")
         })

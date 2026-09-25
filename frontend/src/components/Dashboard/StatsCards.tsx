@@ -151,10 +151,10 @@ export const StatsCards: React.FC<Props> = ({ analytics, loading }) => {
       {cards.map((card) => (
         <div
           key={card.id}
-          className={`bg-[#0B111E] h-[76px] px-3.5 py-2.5 rounded-xl border flex items-center justify-between overflow-hidden transition-all relative ${card.cardStyle}`}
+          className={`bg-white dark:bg-[#0B111E] h-[76px] px-3.5 py-2.5 rounded-xl border flex items-center justify-between overflow-hidden transition-all relative border-slate-200 dark:border-slate-800/80 shadow-sm dark:shadow-none ${card.cardStyle}`}
         >
           {/* Subtle Top Highlight */}
-          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-slate-700/40 to-transparent pointer-events-none" />
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-700/40 to-transparent pointer-events-none" />
 
           {/* Left Column: Solid Icon & Count / Title */}
           <div className="flex items-center space-x-3 min-w-0 z-10">
@@ -165,16 +165,16 @@ export const StatsCards: React.FC<Props> = ({ analytics, loading }) => {
 
             {/* Number & Subtitle */}
             <div className="min-w-0 flex flex-col justify-center">
-              <h3 className="text-[28px] font-extrabold text-white tracking-tight leading-none">
+              <h3 className="text-[28px] font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
                 {loading ? (
-                  <span className="animate-pulse text-slate-600">...</span>
+                  <span className="animate-pulse text-slate-400 dark:text-slate-600">...</span>
                 ) : card.value !== undefined ? (
                   card.value.toLocaleString()
                 ) : (
-                  <span className="text-slate-500 text-xs">0</span>
+                  <span className="text-slate-400 dark:text-slate-500 text-xs">0</span>
                 )}
               </h3>
-              <p className="text-[11px] font-medium text-slate-400 leading-none truncate mt-1.5">
+              <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 leading-none truncate mt-1.5">
                 {card.title}
               </p>
             </div>

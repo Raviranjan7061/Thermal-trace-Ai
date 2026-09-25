@@ -199,6 +199,7 @@ export interface AnalyticsOverview {
   total_detections: number;
   active_anomalies_count: number;
   avg_frp?: number;
+  baseline_expected_mean?: number;
   high_critical_count: number;
   persistent_sources_count: number;
   sudden_events_count: number;

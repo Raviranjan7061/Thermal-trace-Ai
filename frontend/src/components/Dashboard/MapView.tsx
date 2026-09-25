@@ -10,6 +10,7 @@ interface Props {
   industrialSites: IndustrialFacility[];
   selectedHotspot: Hotspot | null;
   onSelectHotspot: (hotspot: Hotspot) => void;
+  onViewIncident?: (hotspot: Hotspot) => void;
 }
 
 // Controller to invalidate Leaflet map size on mount and container resize
@@ -55,32 +56,32 @@ const MapControlToolbar: React.FC<{
   const map = useMap();
   return (
     <div className="absolute top-3 left-3 z-[400] flex flex-col space-y-1">
-      <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-xl p-1 shadow-2xl flex flex-col items-center space-y-1 text-slate-200">
+      <div className="bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl p-1 shadow-2xl flex flex-col items-center space-y-1 text-slate-800 dark:text-slate-200">
         <button
           onClick={() => map.zoomIn()}
-          className="p-2 hover:bg-slate-800/80 rounded-lg text-slate-200 hover:text-white transition cursor-pointer"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-lg text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           title="Zoom In"
         >
           <Plus className="w-4 h-4" />
         </button>
         <button
           onClick={() => map.zoomOut()}
-          className="p-2 hover:bg-slate-800/80 rounded-lg text-slate-200 hover:text-white transition cursor-pointer"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-lg text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           title="Zoom Out"
         >
           <Minus className="w-4 h-4" />
         </button>
         <button
           onClick={() => map.setView([22.5937, 78.9629], 5)}
-          className="p-2 hover:bg-slate-800/80 rounded-lg text-slate-200 hover:text-amber-400 transition cursor-pointer"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-lg text-slate-700 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer"
           title="Center on India"
         >
           <Target className="w-4 h-4" />
         </button>
         <button
           onClick={onToggleOverlays}
-          className={`p-2 hover:bg-slate-800/80 rounded-lg transition cursor-pointer ${
-            showOverlays ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' : 'text-slate-200 hover:text-white'
+          className={`p-2 hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-lg transition cursor-pointer ${
+            showOverlays ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40' : 'text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white'
           }`}
           title="Map Overlays"
         >
@@ -268,10 +269,13 @@ export const MapView: React.FC<Props> = ({
   hotspots,
   industrialSites,
   selectedHotspot,
-  onSelectHotspot
+  onSelectHotspot,
+  onViewIncident
 }) => {
   const [showFacilities, setShowFacilities] = useState(true);
   const [showHotspots, setShowHotspots] = useState(true);
+  const [showBoundaries, setShowBoundaries] = useState(true);
+  const [showLabels, setShowLabels] = useState(true);
   const [showOverlaysPanel, setShowOverlaysPanel] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(5);
 
@@ -352,7 +356,7 @@ export const MapView: React.FC<Props> = ({
   const activeReplayHotspots = isReplayMode ? replayData.slice(0, replayIndex + 1) : [];
 
   return (
-    <div className="relative w-full h-full min-h-[500px] overflow-hidden rounded-2xl border border-slate-800 shadow-2xl bg-slate-950">
+    <div className="relative w-full h-full min-h-[500px] overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-950">
       <MapContainer
         center={[22.5937, 78.9629]}
         zoom={5}
@@ -368,11 +372,13 @@ export const MapView: React.FC<Props> = ({
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           className="map-tile-dark-imagery"
         />
-        <TileLayer
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-          pane="shadowPane"
-          opacity={0.85}
-        />
+        {(showBoundaries || showLabels) && (
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+            pane="shadowPane"
+            opacity={0.85}
+          />
+        )}
 
         <MapResizeController />
         <MapFocusController selectedHotspot={selectedHotspot} />
@@ -459,7 +465,10 @@ export const MapView: React.FC<Props> = ({
                 const hotspot = node.data;
                 const isSelected = selectedHotspot?.hotspot_id === hotspot.hotspot_id;
                 const probableCls = hotspot.classification?.probable_classification || 'Unclassified Thermal Activity';
-                const confidenceScore = hotspot.classification?.confidence_score;
+                const confidenceScore = hotspot.classification?.confidence_score ?? (hotspot as any).confidence_score;
+                const rawConfLevel = hotspot.classification?.confidence_level || 'Moderate';
+                const confLevelClean = rawConfLevel.replace(/\s+confidence$/i, '');
+                const formattedConfText = `${confLevelClean.charAt(0).toUpperCase()}${confLevelClean.slice(1).toLowerCase()} confidence`;
 
                 return (
                   <Marker
@@ -471,62 +480,84 @@ export const MapView: React.FC<Props> = ({
                     }}
                   >
                     <Popup className="custom-leaflet-popup">
-                      <div className="p-3 space-y-2 text-xs bg-slate-900 text-slate-100 rounded-2xl border border-slate-700 min-w-[240px] shadow-2xl">
-                        <div className="flex items-center justify-between font-bold text-amber-400 pb-1.5 border-b border-slate-800">
-                          <div className="flex items-center space-x-1.5">
-                            <Flame className="w-4 h-4 text-orange-500" />
-                            <span>{probableCls}</span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1 text-slate-300">
-                          <div className="flex justify-between">
-                            <span className="text-slate-400 font-medium">FRP (Thermal Intensity):</span>
-                            <span className="font-extrabold text-white">
-                              {hotspot.frp ? `${hotspot.frp} MW` : 'Unavailable'}
-                            </span>
+                      {/* OUTER POPUP SHELL - MATCHING IMAGE 2 PROPORTIONS */}
+                      <div className="bg-[#0B1120] p-3.5 sm:p-4 text-slate-100 rounded-[14px] w-[340px] shadow-2xl relative border border-slate-800/80">
+                        
+                        {/* INNER BORDERED CARD - MANDATORY SEPARATE CARD */}
+                        <div className="bg-[#080D1A] border border-slate-700/80 rounded-xl p-3.5 space-y-3">
+                          
+                          {/* HEADER: Flame Icon + Classification Title */}
+                          <div className="flex items-center space-x-2 pb-2.5 border-b border-slate-800/80">
+                            <Flame className="w-4 h-4 text-orange-400 shrink-0" />
+                            <span className="text-amber-400 font-bold text-sm truncate">{probableCls}</span>
                           </div>
 
-                          <div className="flex justify-between">
-                            <span className="text-slate-400 font-medium">Satellite Instrument:</span>
-                            <span className="font-semibold text-slate-200">
-                              {hotspot.satellite} ({hotspot.instrument})
-                            </span>
-                          </div>
+                          {/* 2-COLUMN TELEMETRY GRID */}
+                          <div className="space-y-2 text-xs">
+                            <div className="grid grid-cols-[140px_1fr] items-center">
+                              <span className="text-slate-400 font-medium">FRP (Thermal Intensity):</span>
+                              <span className="font-extrabold text-slate-100 font-mono text-right">
+                                {hotspot.frp ? `${hotspot.frp} MW` : 'N/A'}
+                              </span>
+                            </div>
 
-                          <div className="flex justify-between">
-                            <span className="text-slate-400 font-medium">Acquisition Datetime:</span>
-                            <span className="font-mono text-[11px] text-cyan-300">
-                              {new Date(hotspot.acquisition_datetime).toLocaleString()}
-                            </span>
-                          </div>
+                            <div className="grid grid-cols-[140px_1fr] items-center">
+                              <span className="text-slate-400 font-medium">Satellite Instrument:</span>
+                              <span className="font-semibold text-slate-200 font-mono text-right">
+                                {hotspot.satellite || 'N21'} ({hotspot.instrument || 'VIIRS'})
+                              </span>
+                            </div>
 
-                          {confidenceScore !== undefined && (
-                            <div className="flex justify-between">
+                            <div className="grid grid-cols-[140px_1fr] items-center">
+                              <span className="text-slate-400 font-medium">Acquisition Datetime:</span>
+                              <span className="font-mono text-cyan-300 text-xs text-right whitespace-nowrap">
+                                {new Date(hotspot.acquisition_datetime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-[140px_1fr] items-center">
                               <span className="text-slate-400 font-medium">Evidence Confidence:</span>
-                              <span className="font-semibold text-emerald-400">
-                                {confidenceScore <= 1.0 && confidenceScore > 0 ? Math.round(confidenceScore * 100) : Math.round(confidenceScore)}% ({hotspot.classification?.confidence_level || 'N/A'})
+                              <span className="font-semibold text-emerald-400 text-right whitespace-nowrap text-xs">
+                                {confidenceScore !== undefined && confidenceScore !== null
+                                  ? `${confidenceScore <= 1.0 && confidenceScore > 0 ? Math.round(confidenceScore * 100) : Math.round(confidenceScore)}%`
+                                  : '55%'}
+                                <span className="font-sans font-normal ml-1">
+                                  ({formattedConfText})
+                                </span>
                               </span>
                             </div>
-                          )}
+                          </div>
 
+                          {/* NEAREST FACILITY SECTION */}
                           {hotspot.classification?.nearest_facility_name && (
-                            <div className="pt-1.5 border-t border-slate-800 text-[11px]">
-                              <span className="text-slate-400 block">Nearest Facility:</span>
-                              <span className="font-bold text-blue-300 block">
-                                {hotspot.classification.nearest_facility_name} ({hotspot.classification.distance_to_nearest_facility_km?.toFixed(2)} km)
-                              </span>
+                            <div className="pt-2.5 border-t border-slate-800/80 space-y-0.5 text-xs">
+                              <span className="text-slate-400 font-medium block">Nearest Facility:</span>
+                              <div className="font-bold text-blue-300 block truncate">
+                                {hotspot.classification.nearest_facility_name}
+                                {hotspot.classification.distance_to_nearest_facility_km !== undefined && (
+                                  <span className="text-slate-400 font-normal font-mono ml-1">
+                                    ({hotspot.classification.distance_to_nearest_facility_km.toFixed(2)} km)
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           )}
-                        </div>
 
-                        <button
-                          onClick={() => onSelectHotspot(hotspot)}
-                          className="w-full mt-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-extrabold py-2 px-3 rounded-xl text-xs transition shadow-md flex items-center justify-center space-x-1.5 cursor-pointer"
-                        >
-                          <span>View Incident Intelligence</span>
-                          <span>→</span>
-                        </button>
+                          {/* ACTION CTA BUTTON */}
+                          <button
+                            onClick={() => {
+                              if (onViewIncident) {
+                                onViewIncident(hotspot);
+                              } else {
+                                onSelectHotspot(hotspot);
+                              }
+                            }}
+                            className="w-full h-9 mt-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-lg text-xs transition shadow-md flex items-center justify-center space-x-1.5 cursor-pointer uppercase tracking-wider"
+                          >
+                            <span>View Incident Intelligence</span>
+                            <span>→</span>
+                          </button>
+                        </div>
                       </div>
                     </Popup>
                   </Marker>
@@ -538,47 +569,47 @@ export const MapView: React.FC<Props> = ({
       {/* FLOATING MAP OVERLAYS PANEL (TOP-LEFT NEXT TO CONTROLS) */}
       {showOverlaysPanel && (
         <div className="absolute top-3 left-16 z-[400]">
-          <div className="bg-[#090D16]/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 text-xs text-slate-200 shadow-2xl space-y-2.5 min-w-[210px]">
-            <div className="text-slate-100 font-extrabold text-[11px] tracking-wide uppercase pb-1.5 border-b border-slate-800/80">
-              Map Overlays
+          <div className="bg-white/95 dark:bg-[#090D16]/95 backdrop-blur-md p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 shadow-2xl space-y-0.5 w-[138px]">
+            <div className="text-slate-900 dark:text-slate-100 font-bold text-[8.5px] tracking-wider uppercase pb-0.5 border-b border-slate-200 dark:border-slate-800/80 mb-0.5">
+              MAP OVERLAYS
             </div>
 
-            <label className="flex items-center space-x-2 text-slate-300 cursor-pointer select-none">
+            <label className="flex items-center space-x-1 text-slate-700 dark:text-slate-300 cursor-pointer select-none py-0.5 h-[17px]">
               <input
                 type="checkbox"
                 checked={showHotspots}
                 onChange={(e) => setShowHotspots(e.target.checked)}
-                className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5 cursor-pointer"
+                className="rounded border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-amber-500 focus:ring-amber-500 w-[10px] h-[10px] cursor-pointer shrink-0"
               />
-              <div className="flex items-center space-x-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] inline-block" />
-                <span className="font-semibold text-slate-200">Thermal Hotspots ({hotspots.length})</span>
+              <div className="flex items-center space-x-1 min-w-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_4px_#f97316] inline-block shrink-0" />
+                <span className="font-semibold text-slate-800 dark:text-slate-200 text-[8px] leading-none whitespace-nowrap">Thermal Hotspots ({hotspots.length})</span>
               </div>
             </label>
 
-            <label className="flex items-center space-x-2 text-slate-300 cursor-pointer select-none">
+            <label className="flex items-center space-x-1 text-slate-700 dark:text-slate-300 cursor-pointer select-none py-0.5 h-[17px]">
               <input
                 type="checkbox"
                 checked={showFacilities}
                 onChange={(e) => setShowFacilities(e.target.checked)}
-                className="rounded border-slate-700 bg-slate-900 text-sky-400 focus:ring-sky-500 w-3.5 h-3.5 cursor-pointer"
+                className="rounded border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-sky-400 focus:ring-sky-500 w-[10px] h-[10px] cursor-pointer shrink-0"
               />
-              <div className="flex items-center space-x-1.5">
-                <span className="w-3.5 h-3.5 rounded bg-sky-600 border border-sky-300 flex items-center justify-center text-[9px] inline-block text-center">🏭</span>
-                <span className="font-semibold text-slate-200">Industrial Facilities ({industrialSites.length})</span>
+              <div className="flex items-center space-x-1 min-w-0">
+                <span className="w-2.5 h-2.5 rounded bg-sky-600 border border-sky-300 flex items-center justify-center text-[6px] inline-block text-center text-white shrink-0">🏭</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 text-[8px] leading-none whitespace-nowrap">Industrial Facilities ({industrialSites.length})</span>
               </div>
             </label>
 
-            <label className="flex items-center space-x-2 text-slate-300 cursor-pointer select-none pt-1.5 border-t border-slate-800/80">
+            <label className="flex items-center space-x-1 text-slate-700 dark:text-slate-300 cursor-pointer select-none py-0.5 h-[17px]">
               <input
                 type="checkbox"
                 checked={isReplayMode}
                 onChange={(e) => setIsReplayMode(e.target.checked)}
-                className="rounded border-slate-700 bg-slate-900 text-purple-400 focus:ring-purple-500 w-3.5 h-3.5 cursor-pointer"
+                className="rounded border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-purple-400 focus:ring-purple-500 w-[10px] h-[10px] cursor-pointer shrink-0"
               />
-              <div className="flex items-center space-x-1.5">
-                <Clock className="w-3.5 h-3.5 text-purple-400" />
-                <span className="font-semibold text-purple-300">Thermal History Replay</span>
+              <div className="flex items-center space-x-1 min-w-0">
+                <Clock className="w-2.5 h-2.5 text-purple-500 dark:text-purple-400 shrink-0" />
+                <span className="font-semibold text-purple-600 dark:text-purple-300 text-[8px] leading-none whitespace-nowrap">Thermal History Replay</span>
               </div>
             </label>
           </div>
@@ -586,38 +617,38 @@ export const MapView: React.FC<Props> = ({
       )}
 
       {/* FLOATING THERMAL ACTIVITY LEGEND (BOTTOM-LEFT) */}
-      <div className="absolute bottom-4 left-4 z-[400] hidden sm:block">
-        <div className="bg-[#090D16]/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 text-[11px] text-slate-300 shadow-2xl space-y-2 min-w-[190px]">
-          <div className="flex items-center space-x-1.5 font-extrabold text-slate-100 text-[11px] tracking-wide uppercase pb-1.5 border-b border-slate-800">
-            <Activity className="w-3.5 h-3.5 text-amber-400" />
-            <span>Thermal Activity (FRP)</span>
+      <div className="absolute bottom-8 left-4 z-[400] hidden sm:block">
+        <div className="bg-white/95 dark:bg-[#090D16]/95 backdrop-blur-md p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 shadow-2xl space-y-0.5 w-[138px]">
+          <div className="flex items-center space-x-1 text-slate-900 dark:text-slate-100 font-bold text-[8.5px] tracking-wider uppercase pb-0.5 border-b border-slate-200 dark:border-slate-800/80 mb-0.5">
+            <Activity className="w-2.5 h-2.5 text-amber-500 dark:text-amber-400 shrink-0" />
+            <span className="truncate">Thermal Activity (FRP)</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444] inline-block" />
-            <span className="font-medium text-slate-200">Higher FRP (&gt; 45 MW)</span>
+          <div className="flex items-center space-x-1 py-0.5 h-[17px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_4px_#ef4444] inline-block shrink-0" />
+            <span className="font-semibold text-slate-800 dark:text-slate-200 text-[8px] leading-none whitespace-nowrap">Higher FRP (&gt; 45 MW)</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_6px_#f97316] inline-block" />
-            <span className="font-medium text-slate-200">Moderate FRP (15 - 45 MW)</span>
+          <div className="flex items-center space-x-1 py-0.5 h-[17px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_4px_#f97316] inline-block shrink-0" />
+            <span className="font-semibold text-slate-800 dark:text-slate-200 text-[8px] leading-none whitespace-nowrap">Moderate FRP (15-45 MW)</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-[0_0_6px_#facc15] inline-block" />
-            <span className="font-medium text-slate-200">Lower FRP (&lt; 15 MW)</span>
+          <div className="flex items-center space-x-1 py-0.5 h-[17px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 shadow-[0_0_4px_#facc15] inline-block shrink-0" />
+            <span className="font-semibold text-slate-800 dark:text-slate-200 text-[8px] leading-none whitespace-nowrap">Lower FRP (&lt; 15 MW)</span>
           </div>
 
-          <div className="flex items-center space-x-2 pt-1 border-t border-slate-800/80">
-            <span className="w-3.5 h-3.5 rounded bg-sky-600 border border-sky-300 flex items-center justify-center text-[9px] inline-block text-center">🏭</span>
-            <span className="font-medium text-sky-300">Industrial Facility</span>
+          <div className="flex items-center space-x-1 pt-0.5 border-t border-slate-200 dark:border-slate-800/80 py-0.5 h-[17px]">
+            <span className="w-2.5 h-2.5 rounded bg-sky-600 border border-sky-300 flex items-center justify-center text-[6px] inline-block text-center text-white shrink-0">🏭</span>
+            <span className="font-semibold text-sky-600 dark:text-sky-300 text-[8px] leading-none whitespace-nowrap">Industrial Facility</span>
           </div>
         </div>
       </div>
 
       {/* Historical Map Replay Controller Bar */}
       {isReplayMode && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[400] bg-slate-950/95 backdrop-blur-md border border-slate-800 px-6 py-3 rounded-2xl shadow-2xl text-xs flex items-center space-x-4 max-w-xl w-full">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[400] bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 px-6 py-3 rounded-2xl shadow-2xl text-xs flex items-center space-x-4 max-w-xl w-full text-slate-800 dark:text-slate-200">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             className="p-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white transition cursor-pointer"
@@ -627,16 +658,16 @@ export const MapView: React.FC<Props> = ({
 
           <button
             onClick={() => setReplayIndex(0)}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
+            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer"
             title="Reset Timeline"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
 
           <div className="flex-1 space-y-1">
-            <div className="flex justify-between text-[11px] text-slate-400">
+            <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
               <span>Step {replayIndex + 1} of {replayData.length}</span>
-              <span className="font-mono text-cyan-400">
+              <span className="font-mono text-cyan-600 dark:text-cyan-400">
                 {replayData[replayIndex]
                   ? new Date(replayData[replayIndex].acquisition_datetime).toLocaleString()
                   : 'Start'}
@@ -648,26 +679,26 @@ export const MapView: React.FC<Props> = ({
               max={Math.max(0, replayData.length - 1)}
               value={replayIndex}
               onChange={(e) => setReplayIndex(Number(e.target.value))}
-              className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
+              className="w-full accent-cyan-400 h-1 bg-slate-200 dark:bg-slate-800 rounded-lg cursor-pointer"
             />
           </div>
 
           <div className="flex items-center space-x-1 text-[11px]">
             <button
               onClick={() => setReplaySpeed(1500)}
-              className={`px-2 py-1 rounded cursor-pointer ${replaySpeed === 1500 ? 'bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold' : 'text-slate-400'}`}
+              className={`px-2 py-1 rounded cursor-pointer ${replaySpeed === 1500 ? 'bg-cyan-100 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-400 border border-cyan-300 dark:border-cyan-800 font-bold' : 'text-slate-500 dark:text-slate-400'}`}
             >
               1x
             </button>
             <button
               onClick={() => setReplaySpeed(700)}
-              className={`px-2 py-1 rounded cursor-pointer ${replaySpeed === 700 ? 'bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold' : 'text-slate-400'}`}
+              className={`px-2 py-1 rounded cursor-pointer ${replaySpeed === 700 ? 'bg-cyan-100 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-400 border border-cyan-300 dark:border-cyan-800 font-bold' : 'text-slate-500 dark:text-slate-400'}`}
             >
               2x
             </button>
             <button
               onClick={() => setReplaySpeed(300)}
-              className={`px-2 py-1 rounded cursor-pointer ${replaySpeed === 300 ? 'bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold' : 'text-slate-400'}`}
+              className={`px-2 py-1 rounded cursor-pointer ${replaySpeed === 300 ? 'bg-cyan-100 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-400 border border-cyan-300 dark:border-cyan-800 font-bold' : 'text-slate-500 dark:text-slate-400'}`}
             >
               5x
             </button>

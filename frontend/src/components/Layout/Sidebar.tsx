@@ -21,7 +21,8 @@ import {
   Layers,
   ArrowRightLeft,
   FileText,
-  Radio
+  Radio,
+  Settings
 } from 'lucide-react';
 
 const authorityNavSections = [
@@ -41,6 +42,7 @@ const authorityNavSections = [
       { path: '/authority/audit', label: 'Regulatory Audit Trail', icon: FileText },
       { path: '/data-sources', label: 'Data Sources Transparency', icon: Database },
       { path: '/system-health', label: 'System Health', icon: Activity },
+      { path: '/settings', label: 'General Settings', icon: Settings },
     ]
   }
 ];
@@ -73,6 +75,7 @@ const userNavSections = [
       { path: '/data-sources', label: 'Data Sources Transparency', icon: Database },
       { path: '/model-performance', label: 'Evidence Intelligence', icon: Cpu },
       { path: '/system-health', label: 'System Health', icon: Activity },
+      { path: '/settings', label: 'General Settings', icon: Settings },
     ]
   }
 ];
@@ -107,6 +110,7 @@ const analystNavSections = [
       { path: '/data-sources', label: 'Data Sources Transparency', icon: Database },
       { path: '/model-performance', label: 'Evidence Intelligence', icon: Cpu },
       { path: '/system-health', label: 'System Health', icon: Activity },
+      { path: '/settings', label: 'General Settings', icon: Settings },
     ]
   }
 ];
@@ -128,6 +132,7 @@ const adminNavSections = [
       { path: '/pipeline-status', label: 'Data Pipeline / FIRMS Status', icon: Radio },
       { path: '/alerts', label: 'Operational Alerts', icon: AlertOctagon },
       { path: '/analytics', label: 'Dynamic Analytics', icon: BarChart3 },
+      { path: '/settings', label: 'General Settings', icon: Settings },
     ]
   },
   {
@@ -154,11 +159,11 @@ export const Sidebar: React.FC = () => {
       : analystNavSections;
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col shrink-0 select-none">
+    <aside className="w-64 bg-slate-100/90 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex flex-col shrink-0 select-none transition-colors duration-200">
       <nav className="p-4 space-y-4 custom-scrollbar overflow-y-auto flex-1">
         {sections.map((section) => (
           <div key={section.title} className="space-y-1">
-            <div className="px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <div className="px-3 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
               {section.title}
             </div>
             {section.items.map((item) => {
@@ -171,8 +176,8 @@ export const Sidebar: React.FC = () => {
                   className={({ isActive }) =>
                     `flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition ${
                       isActive
-                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                        : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-200'
                     }`
                   }
                 >
@@ -185,11 +190,11 @@ export const Sidebar: React.FC = () => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-slate-800 text-[11px] text-slate-500 space-y-1">
-        <p className="font-semibold text-slate-400">ThermalTrace AI Platform</p>
+      <div className="p-4 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 space-y-1">
+        <p className="font-semibold text-slate-700 dark:text-slate-400">ThermalTrace AI Platform</p>
         <p>SIH Problem Statement SIH26162</p>
         <p>Operational Satellite Intelligence</p>
-        <p className="text-[10px] text-emerald-400 font-semibold pt-1 border-t border-slate-800/60">🌱 A Cleaner India • A Safer Tomorrow</p>
+        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800/60">🌱 A Cleaner India • A Safer Tomorrow</p>
       </div>
     </aside>
   );

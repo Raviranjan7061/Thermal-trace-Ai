@@ -127,20 +127,20 @@ export const UserManagementPage: React.FC = () => {
   const adminCount = users.filter((u) => u.role.toLowerCase() === 'admin').length;
 
   return (
-    <div className="h-full flex flex-col bg-slate-950 text-slate-100 overflow-y-auto custom-scrollbar p-6 space-y-6">
+    <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-y-auto custom-scrollbar p-6 space-y-6 transition-colors duration-200">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold tracking-tight text-white flex items-center space-x-2">
-              <Users className="w-5 h-5 text-cyan-400" />
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center space-x-2">
+              <Users className="w-5 h-5 text-cyan-500 dark:text-cyan-400" />
               <span>User & Role Management</span>
             </h1>
-            <span className="bg-cyan-500/10 text-cyan-400 text-[10px] font-semibold px-2 py-0.5 rounded border border-cyan-500/30">
+            <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[10px] font-semibold px-2 py-0.5 rounded border border-cyan-500/30">
               Account Provisioning & Governance
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Manage platform accounts, authorization roles, and account status across ThermalTrace AI.
           </p>
         </div>
@@ -156,88 +156,88 @@ export const UserManagementPage: React.FC = () => {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 text-xs">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center space-y-1">
-          <div className="text-[10px] text-slate-500 uppercase font-bold">Total Accounts</div>
-          <div className="text-lg font-bold text-slate-100">{loading ? '...' : totalUsers}</div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center space-y-1 shadow-sm dark:shadow-none">
+          <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Total Accounts</div>
+          <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{loading ? '...' : totalUsers}</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center space-y-1">
-          <div className="text-[10px] text-emerald-400 uppercase font-bold">Active</div>
-          <div className="text-lg font-bold text-emerald-400">{loading ? '...' : activeCount}</div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center space-y-1 shadow-sm dark:shadow-none">
+          <div className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase font-bold">Active</div>
+          <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{loading ? '...' : activeCount}</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center space-y-1">
-          <div className="text-[10px] text-red-400 uppercase font-bold">Deactivated</div>
-          <div className="text-lg font-bold text-red-400">{loading ? '...' : inactiveCount}</div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center space-y-1 shadow-sm dark:shadow-none">
+          <div className="text-[10px] text-red-600 dark:text-red-400 uppercase font-bold">Deactivated</div>
+          <div className="text-lg font-bold text-red-600 dark:text-red-400">{loading ? '...' : inactiveCount}</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center space-y-1">
-          <div className="text-[10px] text-slate-400 uppercase font-bold">Public User</div>
-          <div className="text-lg font-bold text-slate-200">{loading ? '...' : userCount}</div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center space-y-1 shadow-sm dark:shadow-none">
+          <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Public User</div>
+          <div className="text-lg font-bold text-slate-900 dark:text-slate-200">{loading ? '...' : userCount}</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center space-y-1">
-          <div className="text-[10px] text-amber-400 uppercase font-bold">Analyst</div>
-          <div className="text-lg font-bold text-amber-400">{loading ? '...' : analystCount}</div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center space-y-1 shadow-sm dark:shadow-none">
+          <div className="text-[10px] text-amber-600 dark:text-amber-400 uppercase font-bold">Analyst</div>
+          <div className="text-lg font-bold text-amber-600 dark:text-amber-400">{loading ? '...' : analystCount}</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center space-y-1">
-          <div className="text-[10px] text-cyan-400 uppercase font-bold">Authority</div>
-          <div className="text-lg font-bold text-cyan-400">{loading ? '...' : authorityCount}</div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center space-y-1 shadow-sm dark:shadow-none">
+          <div className="text-[10px] text-cyan-600 dark:text-cyan-400 uppercase font-bold">Authority</div>
+          <div className="text-lg font-bold text-cyan-600 dark:text-cyan-400">{loading ? '...' : authorityCount}</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center space-y-1">
-          <div className="text-[10px] text-indigo-400 uppercase font-bold">Admin</div>
-          <div className="text-lg font-bold text-indigo-400">{loading ? '...' : adminCount}</div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center space-y-1 shadow-sm dark:shadow-none">
+          <div className="text-[10px] text-indigo-600 dark:text-indigo-400 uppercase font-bold">Admin</div>
+          <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{loading ? '...' : adminCount}</div>
         </div>
       </div>
 
       {/* Toolbar & Filters */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-sm dark:shadow-none">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-2.5" />
           <input
             type="text"
             placeholder="Search accounts by Full Name, Email Address, or User ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"
+            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500"
           />
         </div>
 
         <div className="flex items-center space-x-3 text-xs">
-          <div className="flex items-center space-x-1 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1">
-            <Filter className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center space-x-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1">
+            <Filter className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="bg-transparent text-slate-300 focus:outline-none text-xs uppercase"
+              className="bg-transparent text-slate-800 dark:text-slate-300 focus:outline-none text-xs uppercase"
             >
-              <option value="ALL" className="bg-slate-900">All System Roles</option>
-              <option value="user" className="bg-slate-900">USER</option>
-              <option value="analyst" className="bg-slate-900">ANALYST</option>
-              <option value="authority" className="bg-slate-900">AUTHORITY</option>
-              <option value="admin" className="bg-slate-900">ADMIN</option>
+              <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">All System Roles</option>
+              <option value="user" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">USER</option>
+              <option value="analyst" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">ANALYST</option>
+              <option value="authority" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">AUTHORITY</option>
+              <option value="admin" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">ADMIN</option>
             </select>
           </div>
 
-          <div className="flex items-center space-x-1 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1">
+          <div className="flex items-center space-x-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-slate-300 focus:outline-none text-xs"
+              className="bg-transparent text-slate-800 dark:text-slate-300 focus:outline-none text-xs"
             >
-              <option value="ALL" className="bg-slate-900">All Statuses</option>
-              <option value="active" className="bg-slate-900">Active Accounts</option>
-              <option value="inactive" className="bg-slate-900">Deactivated Accounts</option>
+              <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">All Statuses</option>
+              <option value="active" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">Active Accounts</option>
+              <option value="inactive" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">Deactivated Accounts</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Account Management Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl flex-1">
-        <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400 font-medium">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm dark:shadow-xl flex-1">
+        <div className="p-3 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
           <span>Showing {filteredUsers.length} user accounts</span>
           <span>Role updates and activation changes take effect immediately</span>
         </div>
@@ -245,7 +245,7 @@ export const UserManagementPage: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-950/60 text-slate-400 border-b border-slate-800 text-[11px] uppercase tracking-wider font-semibold">
+              <tr className="bg-slate-100 dark:bg-slate-950/60 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider font-semibold">
                 <th className="py-2.5 px-4">User ID</th>
                 <th className="py-2.5 px-4">Full Name & Email</th>
                 <th className="py-2.5 px-4">Role</th>
@@ -254,7 +254,7 @@ export const UserManagementPage: React.FC = () => {
                 <th className="py-2.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {loading ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-500">
@@ -271,49 +271,49 @@ export const UserManagementPage: React.FC = () => {
                 filteredUsers.map((u) => {
                   const isCurrent = u.id === currentUser?.id;
                   return (
-                    <tr key={u.id} className="hover:bg-slate-800/40 transition">
-                      <td className="py-3 px-4 font-mono text-slate-400 text-[11px]">{u.id.substring(0, 12)}...</td>
+                    <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                      <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400 text-[11px]">{u.id.substring(0, 12)}...</td>
                       <td className="py-3 px-4">
-                        <div className="font-bold text-slate-200 flex items-center space-x-1">
+                        <div className="font-bold text-slate-900 dark:text-slate-200 flex items-center space-x-1">
                           <span>{u.full_name || 'N/A'}</span>
                           {isCurrent && (
-                            <span className="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.2 rounded border border-amber-500/30">
+                            <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 rounded border border-amber-500/30">
                               You
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-400 font-mono">{u.email}</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{u.email}</div>
                       </td>
                       <td className="py-3 px-4">
                         <select
                           value={u.role.toLowerCase()}
                           onChange={(e) => handleChangeRole(u, e.target.value)}
-                          className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[11px] font-bold uppercase text-amber-400"
+                          className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-[11px] font-bold uppercase text-amber-600 dark:text-amber-400"
                         >
-                          <option value="admin">ADMIN</option>
-                          <option value="analyst">ANALYST</option>
-                          <option value="authority">AUTHORITY</option>
-                          <option value="user">USER</option>
+                          <option value="admin" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">ADMIN</option>
+                          <option value="analyst" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">ANALYST</option>
+                          <option value="authority" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">AUTHORITY</option>
+                          <option value="user" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200">USER</option>
                         </select>
                       </td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
                             u.is_active
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                              : 'bg-red-500/10 text-red-400 border-red-500/30'
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                              : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30'
                           }`}
                         >
                           {u.is_active ? 'Active' : 'Deactivated'}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">
+                      <td className="py-3 px-4 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
                         {new Date(u.created_at).toLocaleDateString()}
                       </td>
                       <td className="py-3 px-4 text-right space-x-2">
                         <button
                           onClick={() => setSelectedUser(u)}
-                          className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded transition font-semibold"
+                          className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-xs px-2.5 py-1 rounded transition font-semibold"
                         >
                           Manage
                         </button>
@@ -323,8 +323,8 @@ export const UserManagementPage: React.FC = () => {
                           title={isCurrent && u.is_active ? 'You cannot deactivate your active account' : undefined}
                           className={`px-2.5 py-1 rounded text-xs font-semibold transition ${
                             u.is_active
-                              ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed'
-                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed'
+                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                           }`}
                         >
                           {u.is_active ? 'Deactivate' : 'Activate'}
@@ -341,34 +341,34 @@ export const UserManagementPage: React.FC = () => {
 
       {/* Account Detail Drawer */}
       {selectedUser && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[600] flex justify-end">
-          <div className="bg-slate-900 border-l border-slate-800 w-full sm:w-[450px] h-full p-6 space-y-6 overflow-y-auto custom-scrollbar flex flex-col justify-between">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[600] flex justify-end">
+          <div className="bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 w-full sm:w-[450px] h-full p-6 space-y-6 overflow-y-auto custom-scrollbar flex flex-col justify-between shadow-2xl">
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div>
                   <div className="text-[10px] text-slate-500 uppercase font-bold">Account Management</div>
-                  <h3 className="text-base font-bold text-white">{selectedUser.full_name || 'N/A'}</h3>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">{selectedUser.full_name || 'N/A'}</h3>
                 </div>
-                <button onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-white">
+                <button onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 text-xs font-mono">
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3 text-xs font-mono text-slate-700 dark:text-slate-300">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">User ID:</span>
-                  <span className="text-slate-200">{selectedUser.id}</span>
+                  <span className="text-slate-500 dark:text-slate-400">User ID:</span>
+                  <span className="text-slate-900 dark:text-slate-200">{selectedUser.id}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Email Address:</span>
-                  <span className="text-slate-200">{selectedUser.email}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Email Address:</span>
+                  <span className="text-slate-900 dark:text-slate-200">{selectedUser.email}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500">System Role:</span>
+                  <span className="text-slate-500 dark:text-slate-400">System Role:</span>
                   <select
                     value={selectedUser.role.toLowerCase()}
                     onChange={(e) => handleChangeRole(selectedUser, e.target.value)}
-                    className="bg-slate-900 border border-slate-800 rounded px-2 py-0.5 text-xs font-bold uppercase text-amber-400"
+                    className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-0.5 text-xs font-bold uppercase text-amber-600 dark:text-amber-400"
                   >
                     <option value="admin">ADMIN</option>
                     <option value="analyst">ANALYST</option>
@@ -377,26 +377,26 @@ export const UserManagementPage: React.FC = () => {
                   </select>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Account Status:</span>
-                  <span className={selectedUser.is_active ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>
+                  <span className="text-slate-500 dark:text-slate-400">Account Status:</span>
+                  <span className={selectedUser.is_active ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-red-600 dark:text-red-400 font-bold'}>
                     {selectedUser.is_active ? 'ACTIVE' : 'DEACTIVATED'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Created At:</span>
-                  <span className="text-slate-300">{new Date(selectedUser.created_at).toUTCString()}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Created At:</span>
+                  <span className="text-slate-700 dark:text-slate-300">{new Date(selectedUser.created_at).toUTCString()}</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-800 flex justify-between space-x-2">
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between space-x-2">
               <button
                 onClick={() => handleToggleStatus(selectedUser)}
                 disabled={selectedUser.id === currentUser?.id && selectedUser.is_active}
                 className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition ${
                   selectedUser.is_active
-                    ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 disabled:opacity-30'
-                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 disabled:opacity-30'
+                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                 }`}
               >
                 {selectedUser.is_active ? 'Deactivate Account' : 'Activate Account'}
@@ -408,67 +408,67 @@ export const UserManagementPage: React.FC = () => {
 
       {/* Provision User Modal */}
       {isCreateOpen && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[650] flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-white text-sm flex items-center space-x-2">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[650] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-2">
                 <UserPlus className="w-4 h-4 text-amber-500" />
                 <span>Provision Authorized User Account</span>
               </h3>
-              <button onClick={() => setIsCreateOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setIsCreateOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {createError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-400">
                 {createError}
               </div>
             )}
 
             <form onSubmit={handleCreateUser} className="space-y-3">
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Full Name</label>
+                <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Full Name</label>
                 <input
                   type="text"
                   required
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
                   placeholder="e.g. Ramesh Kumar"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-100"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-2 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Email Address</label>
+                <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Email Address</label>
                 <input
                   type="email"
                   required
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="ramesh@thermaltrace.ai"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-100"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-2 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Initial Password</label>
+                <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Initial Password</label>
                 <input
                   type="password"
                   required
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="Minimum 6 characters"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-100"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-2 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Assigned System Role</label>
+                <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Assigned System Role</label>
                 <select
                   value={roleInput}
                   onChange={(e) => setRoleInput(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-100 font-bold uppercase text-amber-400"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-2 text-slate-900 dark:text-slate-100 font-bold uppercase text-amber-600 dark:text-amber-400"
                 >
                   <option value="analyst">ANALYST — Operational Thermal Analyst</option>
                   <option value="authority">AUTHORITY — Regulatory Oversight Briefings</option>
@@ -479,7 +479,7 @@ export const UserManagementPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold border border-slate-300 dark:border-slate-700"
                 >
                   Cancel
                 </button>

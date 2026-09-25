@@ -12,32 +12,32 @@ export const EvidenceBadge: React.FC<Props> = ({ classification, confidenceLevel
     switch (cls) {
       case 'Industrial Fire':
         return {
-          bg: 'bg-red-500/10 border-red-500/30 text-red-400',
+          bg: 'bg-red-500/10 dark:bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400',
           icon: ShieldAlert
         };
       case 'Persistent Gas Flare':
         return {
-          bg: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
+          bg: 'bg-purple-500/10 dark:bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400',
           icon: Factory
         };
       case 'Industrial/Mining Thermal Activity':
         return {
-          bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+          bg: 'bg-amber-500/10 dark:bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
           icon: Factory
         };
       case 'Wildfire':
         return {
-          bg: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
+          bg: 'bg-orange-500/10 dark:bg-orange-500/10 border-orange-500/30 text-orange-600 dark:text-orange-400',
           icon: TreePine
         };
       case 'Crop Burning':
         return {
-          bg: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400',
+          bg: 'bg-yellow-500/10 dark:bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400',
           icon: Wheat
         };
       default:
         return {
-          bg: 'bg-slate-700/30 border-slate-600/30 text-slate-300',
+          bg: 'bg-slate-100 dark:bg-slate-700/30 border-slate-300 dark:border-slate-600/30 text-slate-800 dark:text-slate-300',
           icon: HelpCircle
         };
     }
@@ -51,8 +51,8 @@ export const EvidenceBadge: React.FC<Props> = ({ classification, confidenceLevel
         <Icon className="w-3.5 h-3.5" />
         <span>{classification}</span>
       </span>
-      {confidenceScore !== undefined && (
-        <span className="text-[11px] font-semibold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+      {confidenceScore !== undefined && confidenceScore !== null && (
+        <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800">
           {(confidenceScore <= 1.0 && confidenceScore > 0 ? confidenceScore * 100 : confidenceScore).toFixed(0)}% confidence
         </span>
       )}

@@ -42,11 +42,25 @@ export const LiveObservationsPage: React.FC = () => {
     fetchObservations();
   }, []);
 
+  const matchSatellite = (sat: string, filter: string) => {
+    if (!filter || filter === 'ALL') return true;
+    const s = (sat || '').toUpperCase().trim();
+    const f = (filter || '').toUpperCase().trim();
+    if (f === 'NOAA-20' || f === 'N20') return s === 'NOAA-20' || s === 'N20' || s.includes('20');
+    if (f === 'NOAA-21' || f === 'N21') return s === 'NOAA-21' || s === 'N21' || s.includes('21');
+    return s === f;
+  };
+
   const filteredHotspots = hotspots.filter((h) => {
-    if (satelliteFilter !== 'ALL' && h.satellite !== satelliteFilter) return false;
+    if (satelliteFilter !== 'ALL' && !matchSatellite(h.satellite, satelliteFilter)) return false;
 
     const conf = (h.classification?.confidence_level || h.confidence || 'nominal').toLowerCase();
-    if (confidenceFilter !== 'ALL' && conf !== confidenceFilter.toLowerCase()) return false;
+    if (confidenceFilter !== 'ALL') {
+      const f = confidenceFilter.toLowerCase();
+      if (f === 'high' && !conf.includes('high') && conf !== 'h') return false;
+      if (f === 'nominal' && !conf.includes('nominal') && !conf.includes('moderate') && conf !== 'n') return false;
+      if (f === 'low' && !conf.includes('low') && !conf.includes('insufficient') && conf !== 'l') return false;
+    }
 
     if (dayNightFilter !== 'ALL' && h.daynight !== dayNightFilter) return false;
 
@@ -67,79 +81,187 @@ export const LiveObservationsPage: React.FC = () => {
   const validFrps = hotspots.map((h) => h.frp).filter((f): f is number => f != null);
   const maxFrp = validFrps.length > 0 ? Math.max(...validFrps) : 0;
   const highFrpCount = hotspots.filter((h) => (h.frp ?? 0) >= 10).length;
-  const noaa20Count = hotspots.filter((h) => h.satellite === 'NOAA-20').length;
-  const noaa21Count = hotspots.filter((h) => h.satellite === 'NOAA-21').length;
+  const noaa20Count = hotspots.filter((h) => matchSatellite(h.satellite, 'NOAA-20')).length;
+  const noaa21Count = hotspots.filter((h) => matchSatellite(h.satellite, 'NOAA-21')).length;
 
   return (
-    <div className="h-full flex flex-col bg-slate-950 text-slate-100 overflow-y-auto custom-scrollbar p-6 space-y-6">
+    <div className="p-6 space-y-6 w-full max-w-full text-slate-900 dark:text-slate-100 select-none bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold tracking-tight text-white flex items-center space-x-2">
-              <Satellite className="w-5 h-5 text-amber-400" />
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center space-x-2">
+              <Satellite className="w-5 h-5 text-amber-500 dark:text-amber-400" />
               <span>📡 Live Thermal Observations</span>
             </h1>
-            <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded border border-emerald-500/30">
+            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded border border-emerald-500/30">
               NASA FIRMS Telemetry Stream
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Real-time VIIRS spaceborne thermal telemetry observations with radiant energy calculations and spatial classification.
           </p>
         </div>
 
         <button
           onClick={fetchObservations}
-          className="self-start md:self-auto flex items-center space-x-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs px-3 py-1.5 rounded-lg transition"
+          className="self-start md:self-auto flex items-center space-x-1.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-amber-400' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-amber-500' : ''}`} />
           <span>Refresh Observations</span>
         </button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center space-x-3">
-          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        {/* 1. Total Ingested Telemetry */}
+        <div
+          onClick={() => {
+            setSatelliteFilter('ALL');
+            setConfidenceFilter('ALL');
+            setDayNightFilter('ALL');
+            setMinFrpFilter(0);
+            setSearchQuery('');
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setSatelliteFilter('ALL');
+              setConfidenceFilter('ALL');
+              setDayNightFilter('ALL');
+              setMinFrpFilter(0);
+              setSearchQuery('');
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          title="Click to reset filters and view total ingested telemetry observations"
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center space-x-3 shadow-sm dark:shadow-none transition-colors duration-200 cursor-pointer hover:border-amber-500/50 dark:hover:border-amber-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/80 focus:outline-none focus:ring-1 focus:ring-amber-500"
+        >
+          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
             <Activity className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-400 font-medium">Total Ingested Telemetry</div>
-            <div className="text-xl font-bold text-slate-100">{loading ? '...' : hotspots.length}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Total Ingested Telemetry</div>
+            <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{loading ? '...' : hotspots.length}</div>
             <div className="text-[10px] text-slate-500">Active VIIRS observation records</div>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center space-x-3">
-          <div className="p-2.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">
+        {/* 2. Max Fire Radiative Power */}
+        <div
+          onClick={() => {
+            const maxHotspot = hotspots.reduce<Hotspot | null>((max, current) => {
+              if (current.frp == null) return max;
+              if (!max || (max.frp ?? 0) < current.frp) return current;
+              return max;
+            }, null);
+            if (maxHotspot) {
+              if (minFrpFilter > (maxHotspot.frp ?? 0)) setMinFrpFilter(0);
+              if (satelliteFilter !== 'ALL' && maxHotspot.satellite !== satelliteFilter) setSatelliteFilter('ALL');
+              setSelectedHotspot(maxHotspot);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              const maxHotspot = hotspots.reduce<Hotspot | null>((max, current) => {
+                if (current.frp == null) return max;
+                if (!max || (max.frp ?? 0) < current.frp) return current;
+                return max;
+              }, null);
+              if (maxHotspot) {
+                if (minFrpFilter > (maxHotspot.frp ?? 0)) setMinFrpFilter(0);
+                if (satelliteFilter !== 'ALL' && maxHotspot.satellite !== satelliteFilter) setSatelliteFilter('ALL');
+                setSelectedHotspot(maxHotspot);
+              }
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          title="Click to inspect the record with maximum Fire Radiative Power"
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center space-x-3 shadow-sm dark:shadow-none transition-colors duration-200 cursor-pointer hover:border-red-500/50 dark:hover:border-red-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/80 focus:outline-none focus:ring-1 focus:ring-red-500"
+        >
+          <div className="p-2.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
             <Zap className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-400 font-medium">Max Fire Radiative Power</div>
-            <div className="text-xl font-bold text-red-400">{loading ? '...' : `${maxFrp.toFixed(1)} MW`}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Max Fire Radiative Power</div>
+            <div className="text-xl font-bold text-red-600 dark:text-red-400">{loading ? '...' : `${maxFrp.toFixed(1)} MW`}</div>
             <div className="text-[10px] text-slate-500">Peak thermal radiant energy</div>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center space-x-3">
-          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        {/* 3. High FRP Anomalies (>=10 MW) */}
+        <div
+          onClick={() => {
+            setMinFrpFilter(10);
+            setSatelliteFilter('ALL');
+            setConfidenceFilter('ALL');
+            setDayNightFilter('ALL');
+            setSearchQuery('');
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setMinFrpFilter(10);
+              setSatelliteFilter('ALL');
+              setConfidenceFilter('ALL');
+              setDayNightFilter('ALL');
+              setSearchQuery('');
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          title="Click to filter observations table to high intensity events (FRP >= 10 MW)"
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center space-x-3 shadow-sm dark:shadow-none transition-colors duration-200 cursor-pointer hover:border-amber-500/50 dark:hover:border-amber-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/80 focus:outline-none focus:ring-1 focus:ring-amber-500"
+        >
+          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
             <Flame className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-400 font-medium">High FRP Anomalies (&gt;=10 MW)</div>
-            <div className="text-xl font-bold text-amber-400">{loading ? '...' : highFrpCount}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">High FRP Anomalies (&gt;=10 MW)</div>
+            <div className="text-xl font-bold text-amber-600 dark:text-amber-400">{loading ? '...' : highFrpCount}</div>
             <div className="text-[10px] text-slate-500">Elevated thermal intensity events</div>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center space-x-3">
-          <div className="p-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+        {/* 4. Constellation Sensor Split */}
+        <div
+          onClick={() => {
+            setMinFrpFilter(0);
+            if (satelliteFilter === 'ALL') {
+              setSatelliteFilter('NOAA-20');
+            } else if (satelliteFilter === 'NOAA-20') {
+              setSatelliteFilter('NOAA-21');
+            } else {
+              setSatelliteFilter('ALL');
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setMinFrpFilter(0);
+              if (satelliteFilter === 'ALL') {
+                setSatelliteFilter('NOAA-20');
+              } else if (satelliteFilter === 'NOAA-20') {
+                setSatelliteFilter('NOAA-21');
+              } else {
+                setSatelliteFilter('ALL');
+              }
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          title="Click to filter table by satellite sensor constellation (NOAA-20 / NOAA-21)"
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center space-x-3 shadow-sm dark:shadow-none transition-colors duration-200 cursor-pointer hover:border-cyan-500/50 dark:hover:border-cyan-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/80 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+        >
+          <div className="p-2.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
             <Satellite className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-400 font-medium">Constellation Sensor Split</div>
-            <div className="text-xs font-mono font-bold text-cyan-400 mt-1">
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Constellation Sensor Split</div>
+            <div className="text-xs font-mono font-bold text-cyan-600 dark:text-cyan-400 mt-1">
               NOAA-20: {noaa20Count} | NOAA-21: {noaa21Count}
             </div>
             <div className="text-[10px] text-slate-500">Dual VIIRS satellite orbiters</div>
@@ -148,66 +270,66 @@ export const LiveObservationsPage: React.FC = () => {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-4 shadow-sm dark:shadow-none transition-colors duration-200">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-2.5" />
             <input
               type="text"
               placeholder="Search by Telemetry ID, Lat/Lon, Satellite, or Classification..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* Satellite */}
-            <div className="flex items-center space-x-1 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1">
+            <div className="flex items-center space-x-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1">
               <Satellite className="w-3.5 h-3.5 text-slate-500" />
               <select
                 value={satelliteFilter}
                 onChange={(e) => setSatelliteFilter(e.target.value)}
-                className="bg-transparent text-slate-300 focus:outline-none text-xs"
+                className="bg-transparent text-slate-800 dark:text-slate-300 focus:outline-none text-xs"
               >
-                <option value="ALL" className="bg-slate-900">All Satellites</option>
-                <option value="NOAA-20" className="bg-slate-900">NOAA-20 VIIRS</option>
-                <option value="NOAA-21" className="bg-slate-900">NOAA-21 VIIRS</option>
+                <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">All Satellites</option>
+                <option value="NOAA-20" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">NOAA-20 VIIRS</option>
+                <option value="NOAA-21" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">NOAA-21 VIIRS</option>
               </select>
             </div>
 
             {/* Confidence */}
-            <div className="flex items-center space-x-1 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1">
+            <div className="flex items-center space-x-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1">
               <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
               <select
                 value={confidenceFilter}
                 onChange={(e) => setConfidenceFilter(e.target.value)}
-                className="bg-transparent text-slate-300 focus:outline-none text-xs"
+                className="bg-transparent text-slate-800 dark:text-slate-300 focus:outline-none text-xs"
               >
-                <option value="ALL" className="bg-slate-900">All Confidence</option>
-                <option value="high" className="bg-slate-900">High Confidence</option>
-                <option value="nominal" className="bg-slate-900">Nominal Confidence</option>
-                <option value="low" className="bg-slate-900">Low Confidence</option>
+                <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">All Confidence</option>
+                <option value="high" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">High Confidence</option>
+                <option value="nominal" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Nominal Confidence</option>
+                <option value="low" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Low Confidence</option>
               </select>
             </div>
 
             {/* Day / Night */}
-            <div className="flex items-center space-x-1 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1">
+            <div className="flex items-center space-x-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1">
               <Sun className="w-3.5 h-3.5 text-slate-500" />
               <select
                 value={dayNightFilter}
                 onChange={(e) => setDayNightFilter(e.target.value)}
-                className="bg-transparent text-slate-300 focus:outline-none text-xs"
+                className="bg-transparent text-slate-800 dark:text-slate-300 focus:outline-none text-xs"
               >
-                <option value="ALL" className="bg-slate-900">Day & Night</option>
-                <option value="D" className="bg-slate-900">Day Pass (D)</option>
-                <option value="N" className="bg-slate-900">Night Pass (N)</option>
+                <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Day & Night</option>
+                <option value="D" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Day Pass (D)</option>
+                <option value="N" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Night Pass (N)</option>
               </select>
             </div>
 
             {/* Min FRP slider */}
-            <div className="flex items-center space-x-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1">
-              <span className="text-slate-400 text-[11px]">Min FRP:</span>
+            <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-1">
+              <span className="text-slate-600 dark:text-slate-400 text-[11px]">Min FRP:</span>
               <input
                 type="range"
                 min="0"
@@ -216,18 +338,18 @@ export const LiveObservationsPage: React.FC = () => {
                 onChange={(e) => setMinFrpFilter(Number(e.target.value))}
                 className="w-20 accent-amber-500 cursor-pointer"
               />
-              <span className="text-amber-400 font-mono text-xs w-8">{minFrpFilter} MW</span>
+              <span className="text-amber-600 dark:text-amber-400 font-mono text-xs w-8">{minFrpFilter} MW</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Observation Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg flex-1">
-        <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs">
-          <div className="text-slate-400 font-medium">
-            Showing <span className="text-amber-400 font-bold">{filteredHotspots.length}</span> of{' '}
-            <span className="text-slate-200">{hotspots.length}</span> observations
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-lg mb-4 transition-colors duration-200">
+        <div className="p-3 bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+          <div className="text-slate-600 dark:text-slate-400 font-medium">
+            Showing <span className="text-amber-600 dark:text-amber-400 font-bold">{filteredHotspots.length}</span> of{' '}
+            <span className="text-slate-800 dark:text-slate-200">{hotspots.length}</span> observations
           </div>
           <div className="text-slate-500 text-[11px]">Click any observation row to open full evidence drawer</div>
         </div>
@@ -235,7 +357,7 @@ export const LiveObservationsPage: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-950/60 text-slate-400 border-b border-slate-800 text-[11px] uppercase tracking-wider font-semibold">
+              <tr className="bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider font-semibold">
                 <th className="py-2.5 px-4">Telemetry ID</th>
                 <th className="py-2.5 px-4">Acquisition Time</th>
                 <th className="py-2.5 px-4">Satellite / Sensor</th>
@@ -247,7 +369,7 @@ export const LiveObservationsPage: React.FC = () => {
                 <th className="py-2.5 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-xs">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 text-xs">
               {loading ? (
                 <tr>
                   <td colSpan={9} className="py-8 text-center text-slate-500">
@@ -271,56 +393,60 @@ export const LiveObservationsPage: React.FC = () => {
                     <tr
                       key={h.hotspot_id}
                       onClick={() => setSelectedHotspot(h)}
-                      className="hover:bg-slate-800/60 cursor-pointer transition text-slate-300"
+                      className="hover:bg-slate-100 dark:hover:bg-slate-800/60 cursor-pointer transition text-slate-700 dark:text-slate-300"
                     >
-                      <td className="py-3 px-4 font-mono font-semibold text-slate-200">{h.hotspot_id}</td>
-                      <td className="py-3 px-4 text-slate-400 text-[11px]">
+                      <td className="py-3 px-4 font-mono font-semibold text-slate-900 dark:text-slate-200">{h.hotspot_id}</td>
+                      <td className="py-3 px-4 text-slate-600 dark:text-slate-400 text-[11px]">
                         {h.acquisition_datetime ? new Date(h.acquisition_datetime).toUTCString() : 'N/A'}
                       </td>
                       <td className="py-3 px-4">
                         <span
                           className={`inline-flex items-center space-x-1 text-[11px] font-semibold px-2 py-0.5 rounded border ${
                             h.satellite === 'NOAA-20'
-                              ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
-                              : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30'
+                              ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/30'
+                              : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
                           }`}
                         >
                           <Satellite className="w-3 h-3" />
                           <span>{h.satellite}</span>
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-mono text-[11px] text-slate-400">
+                      <td className="py-3 px-4 font-mono text-[11px] text-slate-600 dark:text-slate-400">
                         {h.latitude.toFixed(4)}, {h.longitude.toFixed(4)}
                       </td>
                       <td className="py-3 px-4 font-mono font-bold">
                         <span
                           className={`${
                             (h.frp ?? 0) >= 20
-                              ? 'text-red-400'
+                              ? 'text-red-600 dark:text-red-400'
                               : (h.frp ?? 0) >= 10
-                              ? 'text-amber-400'
-                              : 'text-emerald-400'
+                              ? 'text-amber-600 dark:text-amber-400'
+                              : 'text-emerald-600 dark:text-emerald-400'
                           }`}
                         >
                           {frpDisplay}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-mono text-[11px] text-slate-400">{brightDisplay}</td>
+                      <td className="py-3 px-4 font-mono text-[11px] text-slate-600 dark:text-slate-400">{brightDisplay}</td>
                       <td className="py-3 px-4">
                         <span
-                          className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${
-                            conf === 'high'
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                              : conf === 'low'
-                              ? 'bg-slate-800 text-slate-400 border-slate-700'
-                              : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                          className={`inline-flex items-center justify-center whitespace-nowrap text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border ${
+                            conf.toLowerCase().includes('high') || conf.toLowerCase() === 'h'
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                              : conf.toLowerCase().includes('low') || conf.toLowerCase().includes('insufficient') || conf.toLowerCase() === 'l'
+                              ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700'
+                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
                           }`}
                         >
-                          {conf}
+                          {conf.toLowerCase().includes('high') || conf.toLowerCase() === 'h'
+                            ? 'HIGH CONFIDENCE'
+                            : conf.toLowerCase().includes('low') || conf.toLowerCase().includes('insufficient') || conf.toLowerCase() === 'l'
+                            ? 'LOW CONFIDENCE'
+                            : 'MODERATE CONFIDENCE'}
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-slate-300 font-medium">{probClass}</span>
+                        <span className="text-slate-800 dark:text-slate-300 font-medium">{probClass}</span>
                       </td>
                       <td className="py-3 px-4 text-right">
                         <button
@@ -328,7 +454,7 @@ export const LiveObservationsPage: React.FC = () => {
                             e.stopPropagation();
                             setSelectedHotspot(h);
                           }}
-                          className="inline-flex items-center space-x-1 text-[11px] bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-semibold px-2.5 py-1 rounded transition"
+                          className="inline-flex items-center space-x-1 text-[11px] bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-700 dark:text-slate-300 font-semibold px-2.5 py-1 rounded transition border border-slate-300 dark:border-slate-700"
                         >
                           <span>View Intelligence</span>
                           <ExternalLink className="w-3 h-3" />

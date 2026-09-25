@@ -15,25 +15,25 @@ export const AnalystReviewPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto custom-scrollbar overflow-y-auto h-full">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto custom-scrollbar overflow-y-auto h-full text-slate-900 dark:text-slate-100 select-none bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       <div>
-        <h1 className="text-xl font-bold text-white">Analyst Review & Human-in-the-Loop Audit Trail</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Analyst Review & Human-in-the-Loop Audit Trail</h1>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Immutable audit records of analyst evaluations, classification overrides, and field verification requests
         </p>
       </div>
 
-      <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm dark:shadow-xl">
         {loading ? (
-          <div className="p-12 text-center text-slate-400 text-xs">Loading analyst review audit records...</div>
+          <div className="p-12 text-center text-slate-500 dark:text-slate-400 text-xs">Loading analyst review audit records...</div>
         ) : reviews.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 text-xs">
+          <div className="p-12 text-center text-slate-500 dark:text-slate-400 text-xs">
             No analyst reviews recorded yet. Analysts can submit review decisions from any hotspot side drawer.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[11px]">
+            <table className="w-full text-left text-xs text-slate-800 dark:text-slate-300">
+              <thead className="bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800 uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="p-3">Review Date / Time</th>
                   <th className="p-3">Hotspot ID</th>
@@ -44,24 +44,24 @@ export const AnalystReviewPage: React.FC = () => {
                   <th className="p-3">Reviewer Email</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                 {reviews.map((r) => (
-                  <tr key={r.review_id} className="hover:bg-slate-800/50 transition">
-                    <td className="p-3 text-slate-300 font-mono text-[11px]">
+                  <tr key={r.review_id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                    <td className="p-3 text-slate-700 dark:text-slate-300 font-mono text-[11px]">
                       {new Date(r.created_at).toLocaleString()}
                     </td>
-                    <td className="p-3 font-mono text-amber-400">
+                    <td className="p-3 font-mono text-amber-600 dark:text-amber-400">
                       {r.hotspot_id.substring(0, 12)}...
                     </td>
-                    <td className="p-3 text-slate-400">{r.original_classification}</td>
-                    <td className="p-3 font-bold text-white">{r.analyst_classification}</td>
+                    <td className="p-3 text-slate-500 dark:text-slate-400">{r.original_classification}</td>
+                    <td className="p-3 font-bold text-slate-900 dark:text-white">{r.analyst_classification}</td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
                         {r.analyst_status}
                       </span>
                     </td>
-                    <td className="p-3 text-slate-300 max-w-xs truncate">{r.analyst_notes || '—'}</td>
-                    <td className="p-3 text-slate-400 font-mono text-[11px]">{r.reviewer_email || 'analyst@thermaltrace.ai'}</td>
+                    <td className="p-3 text-slate-700 dark:text-slate-300 max-w-xs truncate">{r.analyst_notes || '—'}</td>
+                    <td className="p-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">{r.reviewer_email || 'analyst@thermaltrace.ai'}</td>
                   </tr>
                 ))}
               </tbody>

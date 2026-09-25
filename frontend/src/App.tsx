@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/Layout/Navbar';
 import { Sidebar } from './components/Layout/Sidebar';
 
@@ -22,6 +23,7 @@ import { AnalyticsPage } from './pages/Analytics';
 import { DataSourcesPage } from './pages/DataSources';
 import { ModelPerformancePage } from './pages/ModelPerformance';
 import { SystemHealthPage } from './pages/SystemHealth';
+import { SettingsPage } from './pages/Settings';
 import { TeamPage } from './pages/Team';
 
 // Read-Only Feature Pages & Pipeline Operations
@@ -90,11 +92,11 @@ const PublicLoginRoute: React.FC = () => {
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden select-none">
+    <div className="flex flex-col h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden select-none transition-colors duration-200">
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto relative bg-slate-950">
+        <main className="flex-1 overflow-y-auto relative bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
           {children}
         </main>
       </div>
@@ -104,311 +106,324 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public Login & Signup Route */}
-          <Route path="/login" element={<PublicLoginRoute />} />
-          <Route path="/team" element={<TeamPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Public Login & Signup Route */}
+            <Route path="/login" element={<PublicLoginRoute />} />
+            <Route path="/team" element={<TeamPage />} />
 
-          {/* Public User Explorer Dashboard & Full Thermal Map */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['user', 'analyst', 'authority', 'admin']}>
-                <AppLayout>
-                  <PublicDashboardPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/map"
-            element={
-              <ProtectedRoute allowedRoles={['user', 'analyst', 'authority', 'admin']}>
-                <AppLayout>
-                  <PublicDashboardPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Public User Explorer Dashboard & Full Thermal Map */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['user', 'analyst', 'authority', 'admin']}>
+                  <AppLayout>
+                    <PublicDashboardPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/map"
+              element={
+                <ProtectedRoute allowedRoles={['user', 'analyst', 'authority', 'admin']}>
+                  <AppLayout>
+                    <PublicDashboardPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Admin Command Center */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout>
-                  <AdminConsolePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Admin Command Center */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AppLayout>
+                    <AdminConsolePage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Admin User & Role Management */}
-          <Route
-            path="/admin/users"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout>
-                  <UserManagementPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Admin User & Role Management */}
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AppLayout>
+                    <UserManagementPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Admin Security Audit Logs */}
-          <Route
-            path="/admin/audit"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout>
-                  <SecurityAuditPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Admin Security Audit Logs */}
+            <Route
+              path="/admin/audit"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AppLayout>
+                    <SecurityAuditPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Admin Data Pipeline Status */}
-          <Route
-            path="/pipeline-status"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout>
-                  <PipelineStatusPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Admin Data Pipeline Status */}
+            <Route
+              path="/pipeline-status"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AppLayout>
+                    <PipelineStatusPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Authority Monitoring Dashboard */}
-          <Route
-            path="/authority"
-            element={
-              <ProtectedRoute allowedRoles={['authority', 'admin']}>
-                <AppLayout>
-                  <AuthorityDashboardPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Authority Monitoring Dashboard */}
+            <Route
+              path="/authority"
+              element={
+                <ProtectedRoute allowedRoles={['authority', 'admin']}>
+                  <AppLayout>
+                    <AuthorityDashboardPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Authority Regulatory Audit Trail */}
-          <Route
-            path="/authority/audit"
-            element={
-              <ProtectedRoute allowedRoles={['authority', 'admin']}>
-                <AppLayout>
-                  <RegulatoryAuditTrailPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Authority Regulatory Audit Trail */}
+            <Route
+              path="/authority/audit"
+              element={
+                <ProtectedRoute allowedRoles={['authority', 'admin']}>
+                  <AppLayout>
+                    <RegulatoryAuditTrailPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Analyst Operational Dashboard */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute allowedRoles={['analyst', 'admin']}>
-                <AppLayout>
-                  <DashboardPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/analyst"
-            element={
-              <ProtectedRoute allowedRoles={['analyst', 'admin']}>
-                <AppLayout>
-                  <DashboardPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Analyst Operational Dashboard */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute allowedRoles={['analyst', 'admin']}>
+                  <AppLayout>
+                    <DashboardPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analyst"
+              element={
+                <ProtectedRoute allowedRoles={['analyst', 'admin']}>
+                  <AppLayout>
+                    <DashboardPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Additional Feature Pages */}
-          <Route
-            path="/observations"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <LiveObservationsPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Additional Feature Pages */}
+            <Route
+              path="/observations"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <LiveObservationsPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/incidents"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ThermalIncidentsPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/incidents"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ThermalIncidentsPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/replay"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ThermalReplayPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/replay"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ThermalReplayPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/multi-satellite"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <MultiSatellitePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/multi-satellite"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <MultiSatellitePage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/compare"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <IncidentComparisonPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/compare"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <IncidentComparisonPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/provenance"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <DataProvenancePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/provenance"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <DataProvenancePage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/explorer"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ExplorerPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/explorer"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ExplorerPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/temporal"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <TemporalAnalysisPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/temporal"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <TemporalAnalysisPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/industrial-sites"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <IndustrialSitesPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/industrial-sites"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <IndustrialSitesPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/watchlists"
-            element={
-              <ProtectedRoute allowedRoles={['analyst', 'admin']}>
-                <AppLayout>
-                  <WatchlistsPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/watchlists"
+              element={
+                <ProtectedRoute allowedRoles={['analyst', 'admin']}>
+                  <AppLayout>
+                    <WatchlistsPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/reviews"
-            element={
-              <ProtectedRoute allowedRoles={['analyst', 'admin']}>
-                <AppLayout>
-                  <AnalystReviewPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/reviews"
+              element={
+                <ProtectedRoute allowedRoles={['user', 'analyst', 'admin']}>
+                  <AppLayout>
+                    <AnalystReviewPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/alerts"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <AlertsPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/alerts"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AlertsPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <AnalyticsPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AnalyticsPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/data-sources"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <DataSourcesPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/data-sources"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <DataSourcesPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/model-performance"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ModelPerformancePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/model-performance"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ModelPerformancePage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/system-health"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <SystemHealthPage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/system-health"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <SystemHealthPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Catch-all fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute allowedRoles={['user', 'analyst', 'authority', 'admin']}>
+                  <AppLayout>
+                    <SettingsPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch-all fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

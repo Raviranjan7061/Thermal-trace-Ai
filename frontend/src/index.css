@@ -10,12 +10,12 @@
   }
 }
 
-/* Custom Leaflet Map styling for Dark Navy interface */
+/* Custom Leaflet Map styling for Dark interface */
 .leaflet-container {
   width: 100%;
   height: 100%;
-  background: #090d16 !important;
   font-family: inherit;
+  background: #090d16 !important;
 }
 
 .map-tile-dark-imagery {
@@ -46,3 +46,23 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Custom compact leaflet popup override */
+.custom-leaflet-popup .leaflet-popup-content-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 1rem !important;
+}
+
+.custom-leaflet-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.custom-leaflet-popup .leaflet-popup-tip {
+  background-color: #0b1120 !important;
+  border: 1px solid #1e293b !important;
+}
+
