@@ -158,6 +158,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      // Exchange authenticated email/uid with backend googleLogin to obtain a valid backend JWT access_token
+      try {
+        const backendAuth = await apiService.googleLogin({
+          email: emailLower,
+          full_name: fbUser?.displayName || email.split('@')[0],
+          firebase_uid: fbUser?.uid
+        });
+        localStorage.setItem('thermaltrace_token', backendAuth.access_token);
+        setUser(backendAuth.user);
+        return backendAuth.user;
+      } catch (exchangeErr) {
+        console.warn('Backend token exchange during login fallback failed:', exchangeErr);
+      }
+
       const clientUser: User = {
         id: fbUser?.uid || 'user_' + Date.now(),
         email: fbUser?.email || email,

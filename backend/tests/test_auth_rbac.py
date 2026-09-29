@@ -101,6 +101,25 @@ def test_auth_login_success(setup_test_users):
     assert data["user"]["role"] == "admin"
 
 
+def test_oauth2_token_success(setup_test_users):
+    response = client.post("/api/auth/token", data={
+        "username": "test_admin@thermaltrace.ai",
+        "password": "AdminSecret123"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
+
+
+def test_oauth2_token_wrong_password(setup_test_users):
+    response = client.post("/api/auth/token", data={
+        "username": "test_admin@thermaltrace.ai",
+        "password": "WrongPassword"
+    })
+    assert response.status_code == 401
+
+
 def test_auth_login_wrong_password(setup_test_users):
     response = client.post("/api/auth/login", json={
         "email": "test_admin@thermaltrace.ai",

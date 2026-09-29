@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -40,6 +41,10 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
     user: UserSchema
 
+class OAuth2TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
 def log_security_event(db: Session, action: str, actor_email: str, entity_id: str, details: Optional[dict] = None):
     try:
         audit = AuditLog(
@@ -53,6 +58,56 @@ def log_security_event(db: Session, action: str, actor_email: str, entity_id: st
         db.commit()
     except Exception as e:
         db.rollback()
+
+@router.post("/token", response_model=OAuth2TokenResponse)
+def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    email_clean = form_data.username.strip().lower()
+    user = db.query(User).filter(User.email == email_clean).first()
+
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        log_security_event(
+            db=db,
+            action="LOGIN_FAILURE",
+            actor_email=email_clean,
+            entity_id=user.id if user else "unknown",
+            details={"reason": "Invalid credentials (OAuth2 token endpoint)"}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not user.is_active:
+        log_security_event(
+            db=db,
+            action="LOGIN_FAILURE",
+            actor_email=email_clean,
+            entity_id=user.id,
+            details={"reason": "Account deactivated (OAuth2 token endpoint)"}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account is deactivated. Contact system administrator.",
+        )
+
+    access_token = create_access_token(subject=user.id, role=user.role)
+
+    log_security_event(
+        db=db,
+        action="OAUTH2_LOGIN_SUCCESS",
+        actor_email=user.email,
+        entity_id=user.id,
+        details={"role": user.role}
+    )
+
+    return OAuth2TokenResponse(
+        access_token=access_token,
+        token_type="bearer"
+    )
 
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):

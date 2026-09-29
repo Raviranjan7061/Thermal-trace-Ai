@@ -6,7 +6,7 @@ from app.database.session import get_db
 from app.database.models import User
 from app.core.security import decode_access_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token", auto_error=False)
 
 def extract_token(
     request: Request,
