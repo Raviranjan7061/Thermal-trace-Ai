@@ -569,7 +569,9 @@ export const PublicDashboardPage: React.FC = () => {
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">NASA FIRMS Detections</span>
-            <span className="text-xl font-extrabold text-slate-900 dark:text-white">{analytics?.total_detections || hotspots.length || 138}</span>
+            <span className="text-xl font-extrabold text-slate-900 dark:text-white">
+              {loading ? '--' : (analytics?.total_detections ?? hotspots.length)}
+            </span>
             <span className="text-[10px] text-slate-500 block">VIIRS NOAA-20 & NOAA-21</span>
           </div>
         </div>
@@ -580,7 +582,9 @@ export const PublicDashboardPage: React.FC = () => {
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Industrial Facilities</span>
-            <span className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400">{facilities.length || 20}</span>
+            <span className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400">
+              {loading ? '--' : facilities.length}
+            </span>
             <span className="text-[10px] text-slate-500 block">Monitored Infra Registry</span>
           </div>
         </div>
@@ -591,7 +595,9 @@ export const PublicDashboardPage: React.FC = () => {
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Industrial Thermal Candidates</span>
-            <span className="text-xl font-extrabold text-purple-600 dark:text-purple-400">{analytics?.industrial_candidates || 103}</span>
+            <span className="text-xl font-extrabold text-purple-600 dark:text-purple-400">
+              {loading ? '--' : (analytics?.industrial_candidates ?? 0)}
+            </span>
             <span className="text-[10px] text-slate-500 block">High Evidence Confidence</span>
           </div>
         </div>
@@ -602,7 +608,9 @@ export const PublicDashboardPage: React.FC = () => {
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Satellite Acquisition</span>
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block truncate">{analytics?.data_freshness?.firms_status || 'NASA FIRMS Live'}</span>
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block truncate">
+              {analytics?.data_freshness?.firms_status || (health?.firms_integration?.last_sync_status ? `Status: ${health.firms_integration.last_sync_status}` : 'N/A')}
+            </span>
             <span className="text-[10px] text-slate-500 block">Near-Real-Time Stream</span>
           </div>
         </div>
