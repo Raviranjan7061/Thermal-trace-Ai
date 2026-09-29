@@ -111,10 +111,20 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         user=user_schema
     )
 
+KNOWN_ADMIN_ROLES = {
+    "raviranjan706187@gmail.com": "admin",
+    "admin@thermaltrace.ai": "admin",
+    "viratkumar0097@gmail.com": "analyst",
+    "analyst@thermaltrace.ai": "analyst",
+    "ravi90kumarr12@gmail.com": "authority",
+    "authority@thermaltrace.ai": "authority"
+}
+
 @router.post("/google", response_model=LoginResponse)
 def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
     email_clean = payload.email.strip().lower()
     user = db.query(User).filter(User.email == email_clean).first()
+    expected_role = KNOWN_ADMIN_ROLES.get(email_clean)
 
     if user:
         if not user.is_active:
@@ -130,17 +140,26 @@ def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
                 detail="Account is deactivated. Contact system administrator."
             )
 
+        updated = False
         if payload.full_name and (not user.full_name or user.full_name == user.email):
             user.full_name = payload.full_name.strip()
+            updated = True
+
+        if expected_role and user.role != expected_role:
+            user.role = expected_role
+            updated = True
+
+        if updated:
             db.commit()
             db.refresh(user)
     else:
         full_name = payload.full_name.strip() if payload.full_name else email_clean.split('@')[0]
+        assigned_role = expected_role or "user"
         user = User(
             email=email_clean,
             hashed_password=get_password_hash("GOOGLE_SSO_AUTHENTICATED_USER"),
             full_name=full_name,
-            role="user",
+            role=assigned_role,
             is_active=True
         )
         db.add(user)
@@ -152,7 +171,7 @@ def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
             action="GOOGLE_USER_AUTOPROVISIONED",
             actor_email=user.email,
             entity_id=user.id,
-            details={"assigned_role": "user"}
+            details={"assigned_role": assigned_role}
         )
 
     log_security_event(

@@ -13,6 +13,7 @@ import {
   Server
 } from 'lucide-react';
 import { apiService } from '../services/api';
+import { auth } from '../config/firebase';
 import { SystemHealth, DataSourceStatus, AnalyticsOverview } from '../types';
 
 const formatTimestampDisplay = (raw?: string): string => {
@@ -75,6 +76,21 @@ export const PipelineStatusPage: React.FC = () => {
     setSyncing(true);
     setSyncResult(null);
     try {
+      // Check if backend Bearer token is missing but Firebase session is active
+      const token = localStorage.getItem('thermaltrace_token');
+      if (!token && auth.currentUser && auth.currentUser.email) {
+        try {
+          const authRes = await apiService.googleLogin({
+            email: auth.currentUser.email,
+            full_name: auth.currentUser.displayName || undefined,
+            firebase_uid: auth.currentUser.uid
+          });
+          localStorage.setItem('thermaltrace_token', authRes.access_token);
+        } catch (authErr) {
+          console.warn('Pre-sync token refresh failed:', authErr);
+        }
+      }
+
       const res = await apiService.triggerFirmsSync();
       setSyncResult({
         type: 'success',

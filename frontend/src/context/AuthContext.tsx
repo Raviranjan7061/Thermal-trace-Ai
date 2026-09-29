@@ -49,13 +49,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setFirebaseUser(fbUser);
       if (fbUser) {
         // Fetch or validate backend API profile
-        const token = localStorage.getItem('thermaltrace_token');
+        let token = localStorage.getItem('thermaltrace_token');
         if (token) {
           try {
             const dbUser = await apiService.getCurrentUser();
             setUser(dbUser);
           } catch (err) {
             console.warn('Backend session check failed:', err);
+            token = null;
+          }
+        }
+
+        // If backend token is missing, attempt to acquire a fresh JWT token via googleLogin
+        if (!token && fbUser.email) {
+          try {
+            const res = await apiService.googleLogin({
+              email: fbUser.email,
+              full_name: fbUser.displayName || undefined,
+              firebase_uid: fbUser.uid
+            });
+            localStorage.setItem('thermaltrace_token', res.access_token);
+            setUser(res.user);
+          } catch (err) {
+            console.warn('Auto backend token retrieval on auth restore failed:', err);
           }
         }
       } else {
