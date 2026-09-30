@@ -115,6 +115,22 @@ export const LoginPage: React.FC = () => {
         health.database?.status?.toLowerCase() === 'connected')
   );
 
+  const getRoleLandingPath = (role: string): string => {
+    const r = (role || '').toLowerCase();
+    if (r === 'admin') return '/admin';
+    if (r === 'authority') return '/authority';
+    if (r === 'analyst') return '/analyst';
+    return '/dashboard';
+  };
+
+  const getRoleDisplayName = (role: string): string => {
+    const r = (role || '').toLowerCase();
+    if (r === 'admin') return 'ADMIN';
+    if (r === 'authority') return 'AUTHORITY';
+    if (r === 'analyst') return 'ANALYST';
+    return 'USER';
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
@@ -128,34 +144,19 @@ export const LoginPage: React.FC = () => {
     try {
       // Database-driven login: payload passes ONLY email and password
       const authenticatedUser = await login(loginEmail, loginPassword);
-      const userRole = (authenticatedUser.role || '').toLowerCase();
+      const userRole = (authenticatedUser.role || 'user').toLowerCase();
 
       // Strict post-login role mismatch check
-      if (activeRoleMode !== 'user' && userRole !== activeRoleMode) {
+      if (userRole !== activeRoleMode) {
         await logout();
-        const roleNames: Record<string, string> = {
-          analyst: 'Analyst',
-          authority: 'Authority',
-          admin: 'Admin'
-        };
-        setError(`This account does not have ${roleNames[activeRoleMode] || activeRoleMode} access. Unauthorized for this workspace.`);
+        setError('Invalid credentials or account is not authorized for this workspace.');
         return;
       }
 
-      // Automatic redirection based strictly on DB User.role
-      if (userRole === 'admin') {
-        navigate('/admin');
-      } else if (userRole === 'authority') {
-        navigate('/authority');
-      } else if (userRole === 'user') {
-        navigate('/dashboard');
-      } else if (userRole === 'analyst') {
-        navigate('/');
-      } else {
-        navigate('/');
-      }
+      // Automatic redirection based on verified User.role
+      navigate(getRoleLandingPath(userRole));
     } catch (err: any) {
-      const detail = err.response?.data?.detail || 'Authentication failed. Please verify your credentials.';
+      const detail = err.response?.data?.detail || 'Invalid credentials or account is not authorized for this workspace.';
       setError(detail);
     } finally {
       setLoading(false);
@@ -169,32 +170,17 @@ export const LoginPage: React.FC = () => {
     try {
       // Real Firebase Google Popup Authentication
       const authenticatedUser = await loginWithGoogle();
-      const userRole = (authenticatedUser.role || '').toLowerCase();
+      const userRole = (authenticatedUser.role || 'user').toLowerCase();
 
       // Strict post-login role mismatch check
-      if (activeRoleMode !== 'user' && userRole !== activeRoleMode) {
+      if (userRole !== activeRoleMode) {
         await logout();
-        const roleNames: Record<string, string> = {
-          analyst: 'Analyst',
-          authority: 'Authority',
-          admin: 'Admin'
-        };
-        setError(`This Google account does not have ${roleNames[activeRoleMode] || activeRoleMode} access. Unauthorized for this workspace.`);
+        setError('Invalid credentials or account is not authorized for this workspace.');
         return;
       }
 
-      // Automatic redirection based on User.role
-      if (userRole === 'admin') {
-        navigate('/admin');
-      } else if (userRole === 'authority') {
-        navigate('/authority');
-      } else if (userRole === 'user') {
-        navigate('/dashboard');
-      } else if (userRole === 'analyst') {
-        navigate('/');
-      } else {
-        navigate('/dashboard');
-      }
+      // Automatic redirection based on verified User.role
+      navigate(getRoleLandingPath(userRole));
     } catch (err: any) {
       console.error('Firebase Google Sign-In Error:', err);
 

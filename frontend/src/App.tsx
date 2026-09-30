@@ -60,8 +60,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     const userRole = role.toLowerCase();
     if (userRole === 'admin') return <Navigate to="/admin" replace />;
     if (userRole === 'authority') return <Navigate to="/authority" replace />;
-    if (userRole === 'user') return <Navigate to="/dashboard" replace />;
-    return <Navigate to="/" replace />;
+    if (userRole === 'analyst') return <Navigate to="/analyst" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -81,10 +81,19 @@ const PublicLoginRoute: React.FC = () => {
 
   if (user) {
     const userRole = (role || '').toLowerCase();
+    const queryParamRole = new URLSearchParams(window.location.search).get('role');
+    const storedIntent = sessionStorage.getItem('thermaltrace_login_intent');
+    const activeWorkspace = (queryParamRole || storedIntent || '').toLowerCase();
+
+    // If an authenticated user visits /login to authenticate into a DIFFERENT role workspace, show LoginPage
+    if (activeWorkspace && activeWorkspace !== userRole && ['analyst', 'authority', 'admin', 'user'].includes(activeWorkspace)) {
+      return <LoginPage />;
+    }
+
     if (userRole === 'admin') return <Navigate to="/admin" replace />;
     if (userRole === 'authority') return <Navigate to="/authority" replace />;
-    if (userRole === 'user') return <Navigate to="/dashboard" replace />;
-    return <Navigate to="/" replace />;
+    if (userRole === 'analyst') return <Navigate to="/analyst" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <LoginPage />;

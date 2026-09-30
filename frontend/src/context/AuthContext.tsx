@@ -148,15 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const emailLower = (fbUser?.email || email).toLowerCase();
-      const intentRole = sessionStorage.getItem('thermaltrace_login_intent');
-      let assignedRole = KNOWN_ROLE_MAP[emailLower];
-      if (!assignedRole) {
-        if (intentRole && ['analyst', 'authority', 'admin', 'user'].includes(intentRole.toLowerCase())) {
-          assignedRole = intentRole.toLowerCase();
-        } else {
-          assignedRole = 'user';
-        }
-      }
+      const assignedRole = KNOWN_ROLE_MAP[emailLower] || 'user';
 
       // Exchange authenticated email/uid with backend googleLogin to obtain a valid backend JWT access_token
       try {
@@ -223,15 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.warn('Backend Google login validation failed, using resilient role resolution:', err);
       const emailLower = email.toLowerCase();
-      const intentRole = sessionStorage.getItem('thermaltrace_login_intent');
-      let assignedRole = KNOWN_ROLE_MAP[emailLower];
-      if (!assignedRole) {
-        if (intentRole && ['analyst', 'authority', 'admin', 'user'].includes(intentRole.toLowerCase())) {
-          assignedRole = intentRole.toLowerCase();
-        } else {
-          assignedRole = 'user';
-        }
-      }
+      const assignedRole = KNOWN_ROLE_MAP[emailLower] || 'user';
 
       const googleUser: User = {
         id: fbUser.uid,
