@@ -20,7 +20,8 @@ import {
   Cpu,
   Activity,
   Info,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { SubscriptionStatusResponse, SubscriptionPlan, SubscriptionItem } from '../../types';
@@ -243,7 +244,7 @@ export const PremiumAccessRequired: React.FC<Props> = ({
   };
 
   const [showSubmitPaymentModal, setShowSubmitPaymentModal] = useState(false);
-  const [activeView, setActiveView] = useState<'overview' | 'conversation'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'conversation' | 'plans'>('overview');
 
   const latestSub = statusData?.latest_subscription || null;
   const activeSub = statusData?.is_premium_active ? (statusData.active_subscription || latestSub) : null;
@@ -384,9 +385,96 @@ export const PremiumAccessRequired: React.FC<Props> = ({
                 onBack={() => setActiveView('overview')}
               />
             </div>
+          ) : activeView === 'plans' && activeSubItem ? (
+            <div className="p-5 sm:p-6 bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-orange-500/10 border border-amber-500/40 rounded-2xl space-y-4 shadow-lg flex flex-col justify-between h-full">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-amber-500/30 pb-2.5">
+                  <div className="flex items-center space-x-2">
+                    <Crown className="w-4 h-4 text-amber-500" />
+                    <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                      Subscription Plans
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveView('overview')}
+                    className="text-xs font-bold text-amber-500 hover:text-amber-400 transition cursor-pointer flex items-center space-x-1"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Return to Discussion</span>
+                  </button>
+                </div>
+
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300 font-medium">
+                  Your plan is locked while payment discussion is in progress.
+                </div>
+
+                <div className="space-y-3">
+                  {PLANS.map((plan) => {
+                    const isCurrent = activeSubItem.plan_id === plan.id;
+                    return (
+                      <div
+                        key={plan.id}
+                        className={`p-3.5 rounded-xl border transition flex items-center justify-between ${
+                          isCurrent
+                            ? 'bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/40 shadow-md opacity-100'
+                            : 'bg-slate-900/60 dark:bg-slate-950/80 border-slate-700/60 opacity-60 cursor-not-allowed'
+                        }`}
+                      >
+                        <div className="space-y-0.5">
+                          <div className="text-xs font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                            <span>{plan.name}</span>
+                            {isCurrent && (
+                              <span className="text-[9px] font-extrabold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 px-2 py-0.5 rounded-full font-mono">
+                                CURRENT PLAN (LOCKED)
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm font-black text-amber-600 dark:text-amber-400 font-mono">
+                            {plan.displayPrice}
+                          </div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                            {plan.duration}
+                          </div>
+                        </div>
+
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                            isCurrent
+                              ? 'border-amber-500 bg-amber-500 text-slate-950'
+                              : 'border-slate-400 dark:border-slate-700 bg-transparent'
+                          }`}
+                        >
+                          {isCurrent && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('overview')}
+                  className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer uppercase tracking-wider shadow-md flex items-center justify-center space-x-2"
+                >
+                  <span>RETURN TO PAYMENT DISCUSSION</span>
+                </button>
+              </div>
+            </div>
           ) : discussionSub ? (
             <div className="space-y-4 p-6 bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-orange-500/10 border border-amber-500/40 rounded-2xl shadow-xl flex flex-col justify-between h-full">
               <div className="space-y-4">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('plans')}
+                  className="flex items-center space-x-1.5 text-xs font-bold text-amber-500 hover:text-amber-400 transition cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>← Back to Premium Plans</span>
+                </button>
+
                 <div className="flex items-center space-x-2 text-xs font-black text-amber-500 uppercase tracking-wider">
                   <Crown className="w-5 h-5 text-amber-500 animate-pulse" />
                   <span>PAYMENT DISCUSSION IN PROGRESS</span>
@@ -427,6 +515,15 @@ export const PremiumAccessRequired: React.FC<Props> = ({
           ) : verificationPendingSub ? (
             <div className="space-y-4 p-6 bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-orange-500/10 border border-amber-500/40 rounded-2xl shadow-xl flex flex-col justify-between h-full">
               <div className="space-y-4">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('plans')}
+                  className="flex items-center space-x-1.5 text-xs font-bold text-amber-500 hover:text-amber-400 transition cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>← Back to Premium Plans</span>
+                </button>
+
                 <div className="flex items-center space-x-2 text-xs font-black text-amber-400 uppercase tracking-wider">
                   <Clock className="w-5 h-5 animate-spin text-amber-500" />
                   <span>👑 PAYMENT VERIFICATION PENDING</span>
@@ -456,6 +553,15 @@ export const PremiumAccessRequired: React.FC<Props> = ({
           ) : actionRequiredSub ? (
             <div className="space-y-4 p-6 bg-red-500/15 border border-red-500/40 rounded-2xl shadow-xl flex flex-col justify-between h-full">
               <div className="space-y-4">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('plans')}
+                  className="flex items-center space-x-1.5 text-xs font-bold text-red-400 hover:text-red-300 transition cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>← Back to Premium Plans</span>
+                </button>
+
                 <div className="flex items-center space-x-2 text-xs font-black text-red-400 uppercase tracking-wider">
                   <AlertCircle className="w-5 h-5 text-red-500" />
                   <span>ACTION REQUIRED BY ADMIN</span>
