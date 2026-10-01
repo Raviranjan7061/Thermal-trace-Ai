@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, ThemeMode } from '../context/ThemeContext';
 import { apiService } from '../services/api';
-import { SystemHealth, DataSourceStatus } from '../types';
+import { SystemHealth, DataSourceStatus, SubscriptionStatusResponse } from '../types';
 import {
   Settings as SettingsIcon,
   Sun,
@@ -31,7 +31,11 @@ import {
   ShieldCheck,
   CheckCircle2,
   XCircle,
-  HelpCircle
+  HelpCircle,
+  CreditCard,
+  Crown,
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 
 interface UserSettings {
@@ -148,6 +152,52 @@ export const SettingsPage: React.FC = () => {
   // Modal / Feedback State for Account Actions
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [testNotifMsg, setTestNotifMsg] = useState<string | null>(null);
+
+  // USER Subscription & Premium Access State
+  const [subStatus, setSubStatus] = useState<SubscriptionStatusResponse | null>(null);
+  const [subLoading, setSubLoading] = useState(false);
+  const [showRequestSubModal, setShowRequestSubModal] = useState(false);
+  const [selectedPlanKey, setSelectedPlanKey] = useState<'monthly' | 'six_months' | 'yearly'>('monthly');
+  const [requestNotes, setRequestNotes] = useState('');
+  const [subSubmitting, setSubSubmitting] = useState(false);
+  const [subMsg, setSubMsg] = useState<string | null>(null);
+
+  const fetchSubStatus = React.useCallback(async () => {
+    if ((role || '').toLowerCase() !== 'user') return;
+    setSubLoading(true);
+    try {
+      const res = await apiService.getMySubscriptionStatus();
+      setSubStatus(res);
+    } catch (err) {
+      console.error('Failed to fetch subscription status:', err);
+    } finally {
+      setSubLoading(false);
+    }
+  }, [role]);
+
+  useEffect(() => {
+    fetchSubStatus();
+  }, [fetchSubStatus]);
+
+  const handleCreateSubscriptionRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubSubmitting(true);
+    setSubMsg(null);
+    try {
+      await apiService.requestSubscription({
+        plan_id: selectedPlanKey,
+        notes: requestNotes.trim() || undefined
+      });
+      setSubMsg('Subscription request submitted successfully! Pending Admin approval.');
+      setShowRequestSubModal(false);
+      setRequestNotes('');
+      await fetchSubStatus();
+    } catch (err: any) {
+      setSubMsg(err.response?.data?.detail || err.message || 'Failed to submit request.');
+    } finally {
+      setSubSubmitting(false);
+    }
+  };
 
   // Check for unsaved changes
   useEffect(() => {
@@ -1117,6 +1167,250 @@ export const SettingsPage: React.FC = () => {
           </div>
         )}
       </section>
+
+      {/* SECTION — SUBSCRIPTION & PREMIUM ACCESS (USER ROLE ONLY) */}
+      {userRoleDisplay === 'USER' && (
+        <section className="bg-white dark:bg-[#0B111E] border border-amber-500/30 dark:border-amber-500/20 rounded-2xl p-5 sm:p-6 space-y-5 shadow-sm transition-colors duration-200">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
+            <div className="flex items-center space-x-2.5">
+              <Crown className="w-5 h-5 text-amber-500" />
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white uppercase tracking-wider text-xs sm:text-sm">
+                SUBSCRIPTION & PREMIUM ACCESS
+              </h2>
+            </div>
+            {subStatus?.is_premium_active ? (
+              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-black flex items-center space-x-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>PREMIUM ACTIVE</span>
+              </span>
+            ) : subStatus?.status === 'PENDING' ? (
+              <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
+                <Clock className="w-3.5 h-3.5" />
+                <span>APPROVAL PENDING</span>
+              </span>
+            ) : (
+              <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 px-3 py-1 rounded-full text-xs font-bold">
+                STANDARD FREE TIER
+              </span>
+            )}
+          </div>
+
+          {subMsg && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-800 dark:text-amber-300 text-xs font-bold">
+              {subMsg}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Status Card */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 space-y-3 md:col-span-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Current Account Tier</span>
+                <span className="text-xs font-extrabold text-amber-500 font-mono">
+                  {subStatus?.is_premium_active ? 'Premium User' : 'Standard Free User'}
+                </span>
+              </div>
+
+              {subStatus?.is_premium_active ? (
+                <div className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                    <span className="text-slate-500 font-medium">Active Plan:</span>
+                    <span className="font-bold text-slate-900 dark:text-white capitalize">
+                      {subStatus.active_subscription?.plan_name || 'Premium'} Plan
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                    <span className="text-slate-500 font-medium">Subscription Price:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">
+                      ₹{(subStatus.active_subscription?.price_inr || 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                    <span className="text-slate-500 font-medium">Access Granted Date:</span>
+                    <span className="font-mono text-slate-800 dark:text-slate-200">
+                      {subStatus.active_subscription?.approved_at ? new Date(subStatus.active_subscription.approved_at).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Access Expiry Date:</span>
+                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      {subStatus.active_subscription?.subscription_expiry ? new Date(subStatus.active_subscription.subscription_expiry).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              ) : subStatus?.status === 'PENDING' ? (
+                <div className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
+                  <p className="text-amber-600 dark:text-amber-400 font-semibold">
+                    Your request for the <strong className="capitalize">{subStatus.latest_subscription?.plan_name || 'Requested'} Plan</strong> (₹{subStatus.latest_subscription?.price_inr}) is currently waiting for Admin review and approval.
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Requested on: {subStatus.latest_subscription?.created_at ? new Date(subStatus.latest_subscription.created_at).toLocaleString() : 'Recently'}. Once approved, all 11 Premium intelligence modules will unlock automatically.
+                  </p>
+                </div>
+              ) : subStatus?.status === 'REJECTED' ? (
+                <div className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
+                  <p className="text-red-600 dark:text-red-400 font-semibold">
+                    Your previous request for Premium access was not approved by System Admin.
+                  </p>
+                  {subStatus.latest_subscription?.rejection_reason && (
+                    <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-700 dark:text-red-300 text-[11px]">
+                      <strong>Reason:</strong> {subStatus.latest_subscription.rejection_reason}
+                    </div>
+                  )}
+                  <p className="text-[11px] text-slate-500 pt-1">
+                    You may submit a new subscription request below or contact support.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
+                  <p className="text-slate-600 dark:text-slate-400">
+                    You are currently using the <strong>Standard Free Tier</strong>. You have full access to Map Dashboard, Live Thermal Observations, Data Explorer, and Data Sources.
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Upgrade to Premium to unlock Temporal Analysis, Industrial Sites, Verified Incidents, Replay, Multi-Satellite Fusion, Comparison, Provenance, Analytics, Model Performance, and System Health.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Action CTA Card */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex flex-col justify-between space-y-3">
+              <div>
+                <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider block mb-1">
+                  Actions & Requests
+                </span>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Select a subscription plan or consult with system administrators.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                {!subStatus?.is_premium_active && subStatus?.status !== 'PENDING' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowRequestSubModal(true)}
+                    className="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs transition shadow-md shadow-amber-500/20 flex items-center justify-center space-x-2 cursor-pointer"
+                  >
+                    <Crown className="w-4 h-4" />
+                    <span>Request Premium Access</span>
+                  </button>
+                )}
+
+                <a
+                  href="/feedback"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Contact System Admin</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* REQUEST SUBSCRIPTION MODAL */}
+      {showRequestSubModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <Crown className="w-5 h-5 text-amber-500" />
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">Request Premium Subscription Access</h3>
+              </div>
+              <button
+                onClick={() => setShowRequestSubModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateSubscriptionRequest} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-extrabold text-slate-700 dark:text-slate-300 block">
+                  Select Subscription Plan
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div
+                    onClick={() => setSelectedPlanKey('monthly')}
+                    className={`p-3 rounded-xl border cursor-pointer text-center transition ${
+                      selectedPlanKey === 'monthly'
+                        ? 'bg-amber-500/15 border-amber-500 text-slate-900 dark:text-white'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-extrabold">Monthly</div>
+                    <div className="text-sm font-black text-amber-600 dark:text-amber-400 mt-1">₹400</div>
+                    <div className="text-[10px] text-slate-500">1 Month</div>
+                  </div>
+
+                  <div
+                    onClick={() => setSelectedPlanKey('six_months')}
+                    className={`p-3 rounded-xl border cursor-pointer text-center transition ${
+                      selectedPlanKey === 'six_months'
+                        ? 'bg-amber-500/15 border-amber-500 text-slate-900 dark:text-white'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-extrabold">6 Months</div>
+                    <div className="text-sm font-black text-amber-600 dark:text-amber-400 mt-1">₹2,400</div>
+                    <div className="text-[10px] text-slate-500">6 Months</div>
+                  </div>
+
+                  <div
+                    onClick={() => setSelectedPlanKey('yearly')}
+                    className={`p-3 rounded-xl border cursor-pointer text-center transition ${
+                      selectedPlanKey === 'yearly'
+                        ? 'bg-amber-500/15 border-amber-500 text-slate-900 dark:text-white'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-extrabold">Yearly</div>
+                    <div className="text-sm font-black text-amber-600 dark:text-amber-400 mt-1">₹4,800</div>
+                    <div className="text-[10px] text-slate-500">1 Year</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-slate-700 dark:text-slate-300 block">
+                  Request Notes / Justification (Optional)
+                </label>
+                <textarea
+                  rows={3}
+                  value={requestNotes}
+                  onChange={(e) => setRequestNotes(e.target.value)}
+                  placeholder="Provide any details for the administrator regarding your subscription request..."
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 space-y-1">
+                <div className="font-bold">Subscription Workflow Note:</div>
+                <div>Submitting this form records your subscription request in the central database for Admin review. Price and duration are resolved authoritatively on the backend.</div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between">
+                <button
+                  type="submit"
+                  disabled={subSubmitting}
+                  className="px-4 py-2.5 rounded-xl text-xs font-extrabold bg-amber-500 hover:bg-amber-600 text-slate-950 transition cursor-pointer disabled:opacity-50"
+                >
+                  {subSubmitting ? 'Submitting Request...' : 'Submit Access Request'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRequestSubModal(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* SECTION 6 — SYSTEM INFORMATION */}
       <section className="bg-white dark:bg-[#0B111E] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-sm transition-colors duration-200">

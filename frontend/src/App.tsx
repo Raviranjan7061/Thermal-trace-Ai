@@ -37,6 +37,9 @@ import { IncidentComparisonPage } from './pages/IncidentComparisonPage';
 import { DataProvenancePage } from './pages/DataProvenancePage';
 import { PipelineStatusPage } from './pages/PipelineStatus';
 
+import { PremiumAccessRequired } from './components/Subscription/PremiumAccessRequired';
+import { apiService } from './services/api';
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: string[];
@@ -64,6 +67,72 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     if (userRole === 'authority') return <Navigate to="/authority" replace />;
     if (userRole === 'analyst') return <Navigate to="/analyst" replace />;
     return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+interface PremiumRouteGuardProps {
+  children: React.ReactNode;
+  featureTitle: string;
+}
+
+const PremiumRouteGuard: React.FC<PremiumRouteGuardProps> = ({ children, featureTitle }) => {
+  const { user, role, loading: authLoading } = useAuth();
+  const [checking, setChecking] = React.useState(true);
+  const [isPremiumActive, setIsPremiumActive] = React.useState(false);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const checkSub = async () => {
+      if (!user) {
+        if (isMounted) setChecking(false);
+        return;
+      }
+
+      const userRole = (role || '').toLowerCase();
+      if (userRole !== 'user') {
+        if (isMounted) {
+          setIsPremiumActive(true);
+          setChecking(false);
+        }
+        return;
+      }
+
+      try {
+        const res = await apiService.getMySubscriptionStatus();
+        if (isMounted) {
+          setIsPremiumActive(res.is_premium_active);
+        }
+      } catch (err) {
+        console.warn('Subscription check error:', err);
+        if (isMounted) setIsPremiumActive(false);
+      } finally {
+        if (isMounted) setChecking(false);
+      }
+    };
+
+    if (!authLoading) {
+      checkSub();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user, role, authLoading]);
+
+  if (authLoading || checking) {
+    return (
+      <div className="min-h-full w-full flex flex-col items-center justify-center p-12 text-slate-400 text-xs">
+        <div className="w-7 h-7 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+        <span>Verifying ThermalTrace AI subscription entitlement...</span>
+      </div>
+    );
+  }
+
+  const userRole = (role || '').toLowerCase();
+  if (userRole === 'user' && !isPremiumActive) {
+    return <PremiumAccessRequired featureTitle={featureTitle} />;
   }
 
   return <>{children}</>;
@@ -260,7 +329,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <ThermalIncidentsPage />
+                    <PremiumRouteGuard featureTitle="Verified Thermal Incidents">
+                      <ThermalIncidentsPage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -271,7 +342,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <ThermalReplayPage />
+                    <PremiumRouteGuard featureTitle="Historical Thermal Replay">
+                      <ThermalReplayPage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -282,7 +355,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <MultiSatellitePage />
+                    <PremiumRouteGuard featureTitle="Multi-Satellite Fusion & Cross-Verification">
+                      <MultiSatellitePage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -293,7 +368,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <IncidentComparisonPage />
+                    <PremiumRouteGuard featureTitle="Incident Comparison & Differential Analysis">
+                      <IncidentComparisonPage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -304,7 +381,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <DataProvenancePage />
+                    <PremiumRouteGuard featureTitle="Data Provenance & Cryptographic Traceability">
+                      <DataProvenancePage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -326,7 +405,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <TemporalAnalysisPage />
+                    <PremiumRouteGuard featureTitle="Temporal Analysis & Multi-Day Trends">
+                      <TemporalAnalysisPage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -337,7 +418,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <IndustrialSitesPage />
+                    <PremiumRouteGuard featureTitle="Industrial Thermal Profiling & Baseline Tracking">
+                      <IndustrialSitesPage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -381,7 +464,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <AnalyticsPage />
+                    <PremiumRouteGuard featureTitle="Advanced Thermal Analytics & Forecasting">
+                      <AnalyticsPage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -403,7 +488,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <ModelPerformancePage />
+                    <PremiumRouteGuard featureTitle="AI Model Performance & Drift Analytics">
+                      <ModelPerformancePage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -414,7 +501,9 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <SystemHealthPage />
+                    <PremiumRouteGuard featureTitle="System Health & Diagnostic Telemetry">
+                      <SystemHealthPage />
+                    </PremiumRouteGuard>
                   </AppLayout>
                 </ProtectedRoute>
               }
