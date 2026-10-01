@@ -377,3 +377,59 @@ export interface FeedbackSummary {
   items?: FeedbackItem[];
 }
 
+export interface SubscriptionMessage {
+  id: string;
+  subscription_id: string;
+  sender_id?: string | null;
+  sender_email?: string | null;
+  sender_role: 'user' | 'admin' | 'system';
+  message_text: string;
+  created_at: string;
+}
+
+export interface PaymentSubmissionPayload {
+  utr_reference: string;
+  payment_proof_screenshot?: string | null;
+}
+
+export interface SubscriptionItem {
+  id: string;
+  user_id: string;
+  user_email: string;
+  plan_id: string;
+  plan_name: string;
+  price_inr: number;
+  status: string;
+  subscription_code?: string | null;
+  utr_reference?: string | null;
+  utr_submitted_at?: string | null;
+  payment_proof_screenshot?: string | null;
+  resubmit_reason?: string | null;
+  requested_at: string;
+  approved_at?: string | null;
+  approved_by?: string | null;
+  verified_at?: string | null;
+  verified_by?: string | null;
+  rejection_reason?: string | null;
+  subscription_start?: string | null;
+  subscription_expiry?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubscriptionStatusResponse {
+  is_premium_active: boolean;
+  status: string;
+  active_subscription?: SubscriptionItem | null;
+  latest_subscription?: SubscriptionItem | null;
+}
+
+export interface SubscriptionPlan {
+  id: 'monthly' | 'six_months' | 'yearly';
+  name: string;
+  price_inr: number;
+  duration: string;
+  displayPrice: string;
+}
+
+

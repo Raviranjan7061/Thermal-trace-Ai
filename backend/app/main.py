@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.database.session import engine, Base, SessionLocal
 from app.workers.sync_worker import seed_industrial_facilities_if_empty, run_firms_synchronization
 from app.api.routers import (
-    health, sync, hotspots, industrial_sites, analytics, alerts, reviews, model, auth, search, watchlists, notifications, authority, admin, feedback
+    health, sync, hotspots, industrial_sites, analytics, alerts, reviews, model, auth, search, watchlists, notifications, authority, admin, feedback, subscriptions
 )
 
 logging.basicConfig(
@@ -16,7 +16,39 @@ logging.basicConfig(
 )
 logger = logging.getLogger("thermaltrace.main")
 
-# Create database tables
+def ensure_subscription_schema_updated(target_engine):
+    """
+    Safely adds missing payment verification columns to the existing 'subscriptions' table
+    in an idempotent, non-destructive manner for both SQLite and PostgreSQL.
+    """
+    try:
+        from sqlalchemy import inspect, text
+        inspector = inspect(target_engine)
+        if "subscriptions" in inspector.get_table_names():
+            columns = [col["name"] for col in inspector.get_columns("subscriptions")]
+            new_columns = [
+                ("subscription_code", "VARCHAR(64)"),
+                ("utr_reference", "VARCHAR(100)"),
+                ("utr_submitted_at", "TIMESTAMP"),
+                ("payment_proof_screenshot", "TEXT"),
+                ("resubmit_reason", "TEXT"),
+                ("verified_at", "TIMESTAMP"),
+                ("verified_by", "VARCHAR(255)")
+            ]
+            with target_engine.connect() as conn:
+                for col_name, col_type in new_columns:
+                    if col_name not in columns:
+                        logger.info(f"Adding column '{col_name}' to existing 'subscriptions' table...")
+                        try:
+                            conn.execute(text(f"ALTER TABLE subscriptions ADD COLUMN {col_name} {col_type};"))
+                            conn.commit()
+                        except Exception as e:
+                            logger.warning(f"Could not add column {col_name}: {e}")
+    except Exception as exc:
+        logger.warning(f"Idempotent schema migration notice: {exc}")
+
+# Create database tables and update existing schema
+ensure_subscription_schema_updated(engine)
 Base.metadata.create_all(bind=engine)
 
 @asynccontextmanager
@@ -76,6 +108,7 @@ app.include_router(notifications.router)
 app.include_router(authority.router)
 app.include_router(admin.router)
 app.include_router(feedback.router)
+app.include_router(subscriptions.router)
 
 @app.get("/")
 def root_info():

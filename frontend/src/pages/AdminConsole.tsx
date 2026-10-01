@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { User, AdminAuditLog, SystemHealth, AnalyticsOverview } from '../types';
+import { User, AdminAuditLog, SystemHealth, AnalyticsOverview, SubscriptionItem } from '../types';
 import {
   Shield,
   Users,
@@ -17,8 +17,14 @@ import {
   CheckCircle2,
   Lock,
   ArrowRight,
-  Server
+  Server,
+  Crown,
+  Check,
+  X,
+  XCircle,
+  Clock
 } from 'lucide-react';
+import { PaymentChatWindow } from '../components/Subscription/PaymentChatWindow';
 
 const formatTimestampDisplay = (raw?: string): string => {
   if (!raw || typeof raw !== 'string') return 'N/A';
@@ -69,19 +75,42 @@ export const AdminConsolePage: React.FC = () => {
   const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
+  // Subscriptions State
+  const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([]);
+  const [subFilter, setSubFilter] = useState<string>('ALL');
+  const [subActionLoading, setSubActionLoading] = useState<string | null>(null);
+  const [subMsg, setSubMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Payment Verification & Chat Drawer States
+  const [selectedChatSub, setSelectedChatSub] = useState<SubscriptionItem | null>(null);
+  const [selectedVerificationSub, setSelectedVerificationSub] = useState<SubscriptionItem | null>(null);
+  const [resubmitReasonInput, setResubmitReasonInput] = useState('');
+  const [showResubmitPrompt, setShowResubmitPrompt] = useState(false);
+  const [showProofZoom, setShowProofZoom] = useState(false);
+
+
+  // Rejection Modal State
+  const [rejectModal, setRejectModal] = useState<{ open: boolean; subId: string | null; reason: string }>({
+    open: false,
+    subId: null,
+    reason: ''
+  });
+
   const loadCommandCenterData = async () => {
     setLoading(true);
     try {
-      const [uData, aData, hData, ovData] = await Promise.all([
+      const [uData, aData, hData, ovData, subData] = await Promise.all([
         apiService.getAdminUsers(),
         apiService.getAdminAuditLogs(10),
         apiService.getSystemHealth(),
-        apiService.getAnalyticsOverview()
+        apiService.getAnalyticsOverview(),
+        apiService.getAdminSubscriptions().catch(() => [])
       ]);
       setUsers(uData);
       setAuditLogs(aData);
       setHealth(hData);
       setAnalytics(ovData);
+      setSubscriptions(subData);
     } catch (err) {
       console.error('Failed to load command center data:', err);
     } finally {
@@ -92,6 +121,43 @@ export const AdminConsolePage: React.FC = () => {
   useEffect(() => {
     loadCommandCenterData();
   }, []);
+
+  const handleApproveSubscription = async (subId: string) => {
+    setSubActionLoading(subId);
+    setSubMsg(null);
+    try {
+      await apiService.approveSubscription(subId);
+      setSubMsg({ type: 'success', text: 'Subscription request approved successfully.' });
+      await loadCommandCenterData();
+    } catch (err: any) {
+      setSubMsg({ type: 'error', text: err.response?.data?.detail || 'Failed to approve subscription.' });
+    } finally {
+      setSubActionLoading(null);
+    }
+  };
+
+  const handleOpenRejectModal = (subId: string) => {
+    setRejectModal({ open: true, subId, reason: '' });
+  };
+
+  const handleRejectSubscriptionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectModal.subId) return;
+    setSubActionLoading(rejectModal.subId);
+    setSubMsg(null);
+    try {
+      await apiService.rejectSubscription(rejectModal.subId, {
+        rejection_reason: rejectModal.reason.trim() || undefined
+      });
+      setSubMsg({ type: 'success', text: 'Subscription request rejected.' });
+      setRejectModal({ open: false, subId: null, reason: '' });
+      await loadCommandCenterData();
+    } catch (err: any) {
+      setSubMsg({ type: 'error', text: err.response?.data?.detail || 'Failed to reject subscription.' });
+    } finally {
+      setSubActionLoading(null);
+    }
+  };
 
   const handleSyncFirms = async () => {
     setSyncing(true);
@@ -146,6 +212,12 @@ export const AdminConsolePage: React.FC = () => {
   const adminCount = users.filter((u) => u.role.toLowerCase() === 'admin').length;
   const userRoleCount = users.filter((u) => u.role.toLowerCase() === 'user').length;
   const authorizedStaff = analystCount + authorityCount;
+
+  const pendingSubCount = subscriptions.filter((s) => s.status === 'PENDING').length;
+  const filteredSubscriptions = subscriptions.filter((s) => {
+    if (subFilter === 'ALL') return true;
+    return s.status === subFilter;
+  });
 
   const totalObservations = analytics?.data_freshness?.total_db_records ?? health?.database?.hotspots_stored ?? 0;
   const totalAlerts = analytics?.high_critical_count ?? 0;
@@ -420,6 +492,189 @@ export const AdminConsolePage: React.FC = () => {
             </div>
           </div>
 
+          {/* USER Premium Subscription Requests Panel */}
+          <div className="bg-white dark:bg-slate-900 border border-amber-500/30 dark:border-amber-500/20 rounded-xl p-5 space-y-4 shadow-sm dark:shadow-none">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <Crown className="w-5 h-5 text-amber-500" />
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">USER Premium Subscription Requests</h2>
+                {pendingSubCount > 0 && (
+                  <span className="bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-500/40 animate-pulse">
+                    {pendingSubCount} PENDING
+                  </span>
+                )}
+              </div>
+
+              {/* Status Filters */}
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
+                {(['ALL', 'PENDING', 'PAYMENT_DISCUSSION', 'PAYMENT_VERIFICATION_PENDING', 'PAYMENT_ACTION_REQUIRED', 'ACTIVE', 'REJECTED', 'EXPIRED'] as const).map((filter) => {
+                  const count =
+                    filter === 'ALL'
+                      ? subscriptions.length
+                      : subscriptions.filter((s) => s.status === filter).length;
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => setSubFilter(filter)}
+                      className={`px-2.5 py-1 rounded-lg border transition ${
+                        subFilter === filter
+                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/40 font-extrabold'
+                          : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                      }`}
+                    >
+                      {filter.replace('_', ' ')} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {subMsg && (
+              <div
+                className={`p-3 rounded-xl border text-xs flex items-center space-x-2 ${
+                  subMsg.type === 'success'
+                    ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+                    : 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{subMsg.text}</span>
+              </div>
+            )}
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-sans">
+                <thead>
+                  <tr className="text-slate-500 dark:text-slate-400 uppercase text-[10px] border-b border-slate-200 dark:border-slate-800 pb-2">
+                    <th className="pb-2 font-bold">User</th>
+                    <th className="pb-2 font-bold">Plan Details</th>
+                    <th className="pb-2 font-bold">Requested Date</th>
+                    <th className="pb-2 font-bold">Status</th>
+                    <th className="pb-2 text-right font-bold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
+                  {filteredSubscriptions.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-6 text-center text-slate-500">
+                        No subscription requests found matching status filter "{subFilter}".
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredSubscriptions.map((sub) => (
+                      <tr key={sub.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                        <td className="py-3 pr-2">
+                          <div className="font-bold text-slate-900 dark:text-white">{sub.user_email.split('@')[0]}</div>
+                          <div className="text-[11px] font-mono text-slate-500">{sub.user_email}</div>
+                          {sub.subscription_code && (
+                            <div className="text-[9px] font-mono text-amber-500 font-bold">{sub.subscription_code}</div>
+                          )}
+                        </td>
+
+                        <td className="py-3 px-2">
+                          <div className="font-extrabold text-amber-600 dark:text-amber-400 capitalize">
+                            {sub.plan_name} Plan
+                          </div>
+                          <div className="text-[11px] font-mono text-slate-500">
+                            ₹{sub.price_inr.toLocaleString('en-IN')} / {sub.plan_id === 'monthly' ? '1 Month' : sub.plan_id === 'six_months' ? '6 Months' : '1 Year'}
+                          </div>
+                          {sub.utr_reference && (
+                            <div className="text-[10px] font-mono text-emerald-400 font-bold mt-0.5">
+                              Ref/UTR: {sub.utr_reference}
+                            </div>
+                          )}
+                        </td>
+
+                        <td className="py-3 px-2 text-[11px] font-mono text-slate-500">
+                          {formatTimestampDisplay(sub.created_at)}
+                        </td>
+
+                        <td className="py-3 px-2">
+                          {sub.status === 'ACTIVE' ? (
+                            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-black">
+                              ACTIVE (Exp: {sub.subscription_expiry ? new Date(sub.subscription_expiry).toLocaleDateString() : 'N/A'})
+                            </span>
+                          ) : sub.status === 'PENDING' ? (
+                            <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded text-[10px] font-bold animate-pulse">
+                              PENDING APPROVAL
+                            </span>
+                          ) : sub.status === 'PAYMENT_DISCUSSION' ? (
+                            <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded text-[10px] font-bold">
+                              PAYMENT DISCUSSION
+                            </span>
+                          ) : sub.status === 'PAYMENT_VERIFICATION_PENDING' ? (
+                            <span className="bg-amber-500/20 text-amber-500 border border-amber-500/50 px-2 py-0.5 rounded text-[10px] font-extrabold animate-pulse">
+                              VERIFICATION PENDING
+                            </span>
+                          ) : sub.status === 'PAYMENT_ACTION_REQUIRED' ? (
+                            <span className="bg-red-500/15 text-red-500 border border-red-500/40 px-2 py-0.5 rounded text-[10px] font-bold">
+                              ACTION REQUIRED
+                            </span>
+                          ) : sub.status === 'REJECTED' ? (
+                            <span className="bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30 px-2 py-0.5 rounded text-[10px] font-bold">
+                              REJECTED
+                            </span>
+                          ) : (
+                            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded text-[10px] font-bold">
+                              EXPIRED
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-3 pl-2 text-right">
+                          {sub.status === 'PENDING' ? (
+                            <div className="flex items-center justify-end space-x-1.5">
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const updated = await apiService.startPaymentConversation(sub.id);
+                                    loadCommandCenterData();
+                                    setSelectedChatSub(updated);
+                                  } catch (e: any) {
+                                    alert(e.response?.data?.detail || 'Failed to start conversation.');
+                                  }
+                                }}
+                                className="bg-amber-500 hover:bg-amber-600 text-slate-950 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center space-x-1 cursor-pointer shadow-xs"
+                              >
+                                <Crown className="w-3.5 h-3.5" />
+                                <span>Start Payment Conversation</span>
+                              </button>
+                              <button
+                                onClick={() => handleOpenRejectModal(sub.id)}
+                                className="bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 text-[11px] font-bold px-2.5 py-1 rounded-lg transition cursor-pointer"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : sub.status === 'PAYMENT_VERIFICATION_PENDING' ? (
+                            <button
+                              onClick={() => setSelectedVerificationSub(sub)}
+                              className="bg-amber-500 hover:bg-amber-600 text-slate-950 text-[11px] font-black px-3 py-1 rounded-lg transition flex items-center space-x-1 cursor-pointer shadow-md ml-auto"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Review & Verify Payment</span>
+                            </button>
+                          ) : sub.status === 'PAYMENT_DISCUSSION' || sub.status === 'PAYMENT_ACTION_REQUIRED' ? (
+                            <button
+                              onClick={() => setSelectedChatSub(sub)}
+                              className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center space-x-1 cursor-pointer ml-auto"
+                            >
+                              <Crown className="w-3.5 h-3.5 text-amber-500" />
+                              <span>Open Conversation</span>
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 italic">No actions pending</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+
           {/* Recent Administrative Activity Log */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4 shadow-sm dark:shadow-none">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -638,6 +893,233 @@ export const AdminConsolePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Reject Subscription Modal */}
+      {rejectModal.open && (
+        <div className="fixed inset-0 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm z-[650] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-2">
+                <XCircle className="w-4 h-4 text-red-500" />
+                <span>Reject Subscription Request</span>
+              </h3>
+              <button onClick={() => setRejectModal({ open: false, subId: null, reason: '' })} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleRejectSubscriptionSubmit} className="space-y-3">
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                  Reason for Rejection (Optional)
+                </label>
+                <textarea
+                  rows={3}
+                  value={rejectModal.reason}
+                  onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })}
+                  placeholder="e.g. Account details require verification before granting premium features."
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-2.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setRejectModal({ open: false, subId: null, reason: '' })}
+                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={subActionLoading === rejectModal.subId}
+                  className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold disabled:opacity-50"
+                >
+                  {subActionLoading === rejectModal.subId ? 'Rejecting...' : 'Reject Request'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADMIN PAYMENT CONVERSATION DRAWER */}
+      {selectedChatSub && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-[700] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl p-6 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="font-black text-slate-900 dark:text-white text-sm flex items-center space-x-2">
+                  <Crown className="w-4 h-4 text-amber-500" />
+                  <span>Payment Conversation ({selectedChatSub.user_email})</span>
+                </h3>
+                <span className="text-[10px] font-mono text-amber-500 font-bold">
+                  {selectedChatSub.subscription_code || selectedChatSub.id} — {selectedChatSub.plan_name} (₹{selectedChatSub.price_inr?.toLocaleString('en-IN')})
+                </span>
+              </div>
+              <button onClick={() => setSelectedChatSub(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                ✕
+              </button>
+            </div>
+
+            <PaymentChatWindow subscriptionId={selectedChatSub.id} showPaidButton={false} />
+          </div>
+        </div>
+      )}
+
+      {/* ADMIN PAYMENT VERIFICATION DRAWER */}
+      {selectedVerificationSub && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-[750] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-amber-500/40 rounded-2xl w-full max-w-3xl shadow-2xl p-6 space-y-5 text-xs text-slate-900 dark:text-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="font-black text-slate-900 dark:text-white text-base flex items-center space-x-2">
+                  <CheckCircle2 className="w-5 h-5 text-amber-500" />
+                  <span>Review Payment & Verify Premium Access</span>
+                </h3>
+                <span className="text-[11px] font-mono text-amber-500 font-bold">
+                  Code: {selectedVerificationSub.subscription_code || selectedVerificationSub.id}
+                </span>
+              </div>
+              <button onClick={() => { setSelectedVerificationSub(null); setShowResubmitPrompt(false); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                ✕
+              </button>
+            </div>
+
+            {/* PAYMENT VERIFICATION SUMMARY */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-sans">
+              <div>
+                <span className="text-[10px] text-slate-500 uppercase font-bold block">Subscriber Email</span>
+                <span className="font-bold text-slate-900 dark:text-white font-mono text-xs">{selectedVerificationSub.user_email}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-500 uppercase font-bold block">Selected Plan & Price</span>
+                <span className="font-extrabold text-amber-600 dark:text-amber-400 font-mono text-xs">
+                  {selectedVerificationSub.plan_name} — ₹{selectedVerificationSub.price_inr?.toLocaleString('en-IN')}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-500 uppercase font-bold block">Transaction Ref / UTR</span>
+                <span className="font-extrabold text-emerald-400 font-mono text-sm tracking-wide block">
+                  {selectedVerificationSub.utr_reference || 'N/A'}
+                </span>
+              </div>
+            </div>
+
+            {/* PAYMENT PROOF SCREENSHOT PREVIEW */}
+            {selectedVerificationSub.payment_proof_screenshot && (
+              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-300 text-xs flex items-center space-x-1.5">
+                    <FileText className="w-4 h-4 text-amber-400" />
+                    <span>Payment Proof Screenshot</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowProofZoom(!showProofZoom)}
+                    className="text-[11px] text-amber-400 hover:underline font-bold"
+                  >
+                    {showProofZoom ? 'Hide Full Size' : 'View Full Image'}
+                  </button>
+                </div>
+
+                <div className="max-h-48 overflow-hidden rounded-lg border border-slate-800 flex items-center justify-center bg-black/40">
+                  <img
+                    src={selectedVerificationSub.payment_proof_screenshot}
+                    alt="Payment Proof"
+                    className={`object-contain transition-all ${showProofZoom ? 'max-h-96' : 'max-h-44'}`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* RESUBMIT REASON PROMPT */}
+            {showResubmitPrompt && (
+              <div className="p-4 bg-red-500/10 border border-red-500/40 rounded-xl space-y-3">
+                <span className="font-bold text-red-400 text-xs block">Request Payment Detail Resubmission</span>
+                <textarea
+                  rows={3}
+                  value={resubmitReasonInput}
+                  onChange={(e) => setResubmitReasonInput(e.target.value)}
+                  placeholder="Explain why resubmission is required (e.g. UTR reference not found in bank statement, please check and re-enter)..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-red-500"
+                />
+                <div className="flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowResubmitPrompt(false)}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!resubmitReasonInput.trim()}
+                    onClick={async () => {
+                      try {
+                        await apiService.requestPaymentResubmit(selectedVerificationSub.id, resubmitReasonInput.trim());
+                        loadCommandCenterData();
+                        setSelectedVerificationSub(null);
+                        setShowResubmitPrompt(false);
+                        setResubmitReasonInput('');
+                      } catch (e: any) {
+                        alert(e.response?.data?.detail || 'Failed to request resubmission.');
+                      }
+                    }}
+                    className="px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold cursor-pointer disabled:opacity-50"
+                  >
+                    Send Resubmit Request
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* PRIVATE CHAT THREAD INSIDE VERIFICATION DRAWER */}
+            <div className="space-y-1">
+              <span className="font-bold text-slate-400 text-[11px] block">Payment Communication History</span>
+              <PaymentChatWindow subscriptionId={selectedVerificationSub.id} showPaidButton={false} />
+            </div>
+
+            {/* ACTION BUTTONS */}
+            <div className="pt-2 flex justify-between items-center border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setShowResubmitPrompt(true)}
+                className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold transition cursor-pointer"
+              >
+                Ask to Resubmit
+              </button>
+
+              <div className="flex items-center space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedVerificationSub(null)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await apiService.verifyAndActivatePayment(selectedVerificationSub.id);
+                      loadCommandCenterData();
+                      setSelectedVerificationSub(null);
+                    } catch (e: any) {
+                      alert(e.response?.data?.detail || 'Failed to verify payment.');
+                    }
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black transition cursor-pointer shadow-md flex items-center space-x-1.5 uppercase tracking-wider"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Verify Payment & Activate Premium</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

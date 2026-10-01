@@ -299,3 +299,66 @@ class FeedbackSummaryResponse(BaseModel):
     in_review_count: int
     resolved_count: int
     items: List[FeedbackResponse] = []
+
+class SubscriptionMessageCreatePayload(BaseModel):
+    message_text: str
+
+class SubscriptionMessageResponse(BaseModel):
+    id: str
+    subscription_id: str
+    sender_id: Optional[str] = None
+    sender_email: Optional[str] = None
+    sender_role: str
+    message_text: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class PaymentSubmissionPayload(BaseModel):
+    utr_reference: str
+    payment_proof_screenshot: Optional[str] = None
+
+class SubscriptionResubmitPayload(BaseModel):
+    resubmit_reason: str
+
+class SubscriptionRequestPayload(BaseModel):
+    plan_id: str
+
+class SubscriptionApprovePayload(BaseModel):
+    pass
+
+class SubscriptionRejectPayload(BaseModel):
+    rejection_reason: Optional[str] = None
+
+class SubscriptionResponse(BaseModel):
+    id: str
+    user_id: str
+    user_email: str
+    plan_id: str
+    plan_name: str
+    price_inr: int
+    status: str
+    subscription_code: Optional[str] = None
+    utr_reference: Optional[str] = None
+    utr_submitted_at: Optional[datetime] = None
+    payment_proof_screenshot: Optional[str] = None
+    resubmit_reason: Optional[str] = None
+    requested_at: datetime
+    approved_at: Optional[datetime] = None
+    approved_by: Optional[str] = None
+    verified_at: Optional[datetime] = None
+    verified_by: Optional[str] = None
+    rejection_reason: Optional[str] = None
+    subscription_start: Optional[datetime] = None
+    subscription_expiry: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class SubscriptionStatusResponse(BaseModel):
+    is_premium_active: bool
+    status: str
+    active_subscription: Optional[SubscriptionResponse] = None
+    latest_subscription: Optional[SubscriptionResponse] = None
+

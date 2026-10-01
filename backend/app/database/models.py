@@ -265,3 +265,49 @@ class FeedbackItem(Base):
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     user = relationship("User")
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id = Column(String(64), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_email = Column(String(255), nullable=False, index=True)
+    plan_id = Column(String(50), nullable=False) # monthly, six_months, yearly
+    plan_name = Column(String(100), nullable=False) # Monthly, 6 Months, Yearly
+    price_inr = Column(Integer, nullable=False) # 400, 2400, 4800
+    status = Column(String(50), default="PENDING", nullable=False, index=True) # PENDING, ACTIVE, REJECTED, EXPIRED, CANCELLED
+    requested_at = Column(DateTime, default=utc_now, index=True)
+    approved_at = Column(DateTime, nullable=True)
+    approved_by = Column(String(255), nullable=True)
+    rejection_reason = Column(Text, nullable=True)
+    subscription_start = Column(DateTime, nullable=True)
+    subscription_expiry = Column(DateTime, nullable=True, index=True)
+    subscription_code = Column(String(64), nullable=True, unique=True, index=True)
+    utr_reference = Column(String(100), nullable=True, index=True)
+    utr_submitted_at = Column(DateTime, nullable=True)
+    payment_proof_screenshot = Column(Text, nullable=True)
+    resubmit_reason = Column(Text, nullable=True)
+    verified_at = Column(DateTime, nullable=True)
+    verified_by = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    user = relationship("User")
+    messages = relationship("SubscriptionMessage", back_populates="subscription", cascade="all, delete-orphan", order_by="SubscriptionMessage.created_at.asc()")
+
+
+class SubscriptionMessage(Base):
+    __tablename__ = "subscription_messages"
+
+    id = Column(String(64), primary_key=True, default=generate_uuid)
+    subscription_id = Column(String(64), ForeignKey("subscriptions.id", ondelete="CASCADE"), nullable=False, index=True)
+    sender_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    sender_email = Column(String(255), nullable=True)
+    sender_role = Column(String(50), nullable=False, default="user") # user, admin, system
+    message_text = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=utc_now, index=True)
+
+    subscription = relationship("Subscription", back_populates="messages")
+    sender = relationship("User")
+

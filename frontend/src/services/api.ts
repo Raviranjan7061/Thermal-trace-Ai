@@ -18,7 +18,11 @@ import {
   AuthoritySummary,
   AdminAuditLog,
   FeedbackItem,
-  FeedbackSummary
+  FeedbackSummary,
+  SubscriptionItem,
+  SubscriptionStatusResponse,
+  SubscriptionMessage,
+  PaymentSubmissionPayload
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -330,5 +334,70 @@ export const apiService = {
   async updateFeedbackStatus(id: string, data: { status: string; admin_notes?: string }): Promise<FeedbackItem> {
     const res = await client.patch<FeedbackItem>(`/api/feedback/${id}/status`, data);
     return res.data;
+  },
+
+  async requestSubscription(payload: { plan_id?: string; plan?: string; notes?: string } | string): Promise<SubscriptionItem> {
+    const planId = typeof payload === 'string' ? payload : (payload.plan_id || payload.plan || '');
+    const res = await client.post<SubscriptionItem>('/api/subscriptions/request', { plan_id: planId });
+    return res.data;
+  },
+
+  async changeSubscriptionPlan(payload: { plan_id?: string; plan?: string } | string): Promise<SubscriptionItem> {
+    const planId = typeof payload === 'string' ? payload : (payload.plan_id || payload.plan || '');
+    const res = await client.put<SubscriptionItem>('/api/subscriptions/change-plan', { plan_id: planId });
+    return res.data;
+  },
+
+  async getMySubscriptionStatus(): Promise<SubscriptionStatusResponse> {
+    const res = await client.get<SubscriptionStatusResponse>('/api/subscriptions/my-status');
+    return res.data;
+  },
+
+  async getAdminSubscriptions(statusFilter?: string): Promise<SubscriptionItem[]> {
+    const params = statusFilter ? { status: statusFilter } : {};
+    const res = await client.get<SubscriptionItem[]>('/api/admin/subscriptions', { params });
+    return res.data;
+  },
+
+  async approveSubscription(subscriptionId: string): Promise<SubscriptionItem> {
+    const res = await client.post<SubscriptionItem>(`/api/admin/subscriptions/${subscriptionId}/approve`);
+    return res.data;
+  },
+
+  async rejectSubscription(subscriptionId: string, data?: { rejection_reason?: string } | string): Promise<SubscriptionItem> {
+    const payload = typeof data === 'string' ? { rejection_reason: data } : (data || {});
+    const res = await client.post<SubscriptionItem>(`/api/admin/subscriptions/${subscriptionId}/reject`, payload);
+    return res.data;
+  },
+
+  async startPaymentConversation(subscriptionId: string): Promise<SubscriptionItem> {
+    const res = await client.post<SubscriptionItem>(`/api/subscriptions/${subscriptionId}/start-conversation`);
+    return res.data;
+  },
+
+  async getSubscriptionMessages(subscriptionId: string): Promise<SubscriptionMessage[]> {
+    const res = await client.get<SubscriptionMessage[]>(`/api/subscriptions/${subscriptionId}/messages`);
+    return res.data;
+  },
+
+  async sendSubscriptionMessage(subscriptionId: string, messageText: string): Promise<SubscriptionMessage> {
+    const res = await client.post<SubscriptionMessage>(`/api/subscriptions/${subscriptionId}/messages`, { message_text: messageText });
+    return res.data;
+  },
+
+  async submitPaymentInfo(subscriptionId: string, payload: PaymentSubmissionPayload): Promise<SubscriptionItem> {
+    const res = await client.post<SubscriptionItem>(`/api/subscriptions/${subscriptionId}/submit-payment`, payload);
+    return res.data;
+  },
+
+  async requestPaymentResubmit(subscriptionId: string, resubmitReason: string): Promise<SubscriptionItem> {
+    const res = await client.post<SubscriptionItem>(`/api/subscriptions/${subscriptionId}/request-resubmit`, { resubmit_reason: resubmitReason });
+    return res.data;
+  },
+
+  async verifyAndActivatePayment(subscriptionId: string): Promise<SubscriptionItem> {
+    const res = await client.post<SubscriptionItem>(`/api/subscriptions/${subscriptionId}/verify-and-activate`);
+    return res.data;
   }
 };
+
