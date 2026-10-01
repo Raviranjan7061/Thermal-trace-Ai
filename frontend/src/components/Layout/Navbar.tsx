@@ -20,7 +20,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  Check
+  Check,
+  Menu
 } from 'lucide-react';
 import { NotificationItem } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
@@ -188,7 +189,11 @@ const NotificationCenterDropdown: React.FC = () => {
   );
 };
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  onToggleMobileMenu?: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
   const { user, role, logout } = useAuth();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [health, setHealth] = useState<SystemHealth | null>(null);
@@ -241,16 +246,27 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 px-6 py-3 flex flex-wrap items-center justify-between sticky top-0 z-30 transition-colors duration-200">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-tr from-orange-600 to-amber-500 p-2 rounded-lg shadow-lg shadow-amber-500/10">
-              <Satellite className="w-6 h-6 text-slate-950" />
+      <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between sticky top-0 z-30 transition-colors duration-200">
+        <div className="flex items-center space-x-2.5 sm:space-x-4">
+          {onToggleMobileMenu && (
+            <button
+              type="button"
+              onClick={onToggleMobileMenu}
+              className="lg:hidden p-1.5 text-slate-600 dark:text-slate-300 hover:text-orange-500 rounded-lg focus:outline-none shrink-0"
+              aria-label="Toggle navigation drawer"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="bg-gradient-to-tr from-orange-600 to-amber-500 p-1.5 sm:p-2 rounded-lg shadow-lg shadow-amber-500/10">
+              <Satellite className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-bold text-lg tracking-wide text-slate-900 dark:text-white">ThermalTrace AI</span>
-                <span className="bg-slate-100 dark:bg-slate-800 text-amber-600 dark:text-amber-400 text-xs font-semibold px-2 py-0.5 rounded border border-amber-500/30">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                <span className="font-bold text-base sm:text-lg tracking-wide text-slate-900 dark:text-white">ThermalTrace AI</span>
+                <span className="bg-slate-100 dark:bg-slate-800 text-amber-600 dark:text-amber-400 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded border border-amber-500/30">
                   SIH26162
                 </span>
               </div>

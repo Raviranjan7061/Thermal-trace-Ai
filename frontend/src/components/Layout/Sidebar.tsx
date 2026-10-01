@@ -24,7 +24,8 @@ import {
   Radio,
   Settings,
   MessageSquare,
-  Inbox
+  Inbox,
+  X
 } from 'lucide-react';
 
 const authorityNavSections = [
@@ -151,7 +152,12 @@ const adminNavSections = [
   }
 ];
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  mobileMenuOpen?: boolean;
+  onCloseMobileMenu?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onCloseMobileMenu }) => {
   const { role } = useAuth();
   const location = useLocation();
   const userRole = (role || 'analyst').toLowerCase();
@@ -166,43 +172,109 @@ export const Sidebar: React.FC = () => {
       : analystNavSections;
 
   return (
-    <aside className="w-64 bg-slate-100/90 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex flex-col shrink-0 select-none transition-colors duration-200">
-      <nav className="p-4 space-y-4 custom-scrollbar overflow-y-auto flex-1">
-        {sections.map((section) => (
-          <div key={section.title} className="space-y-1">
-            <div className="px-3 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
-              {section.title}
+    <>
+      {/* Desktop Sidebar (>=1024px) - 100% UNCHANGED */}
+      <aside className="hidden lg:flex w-64 bg-slate-100/90 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex-col shrink-0 select-none transition-colors duration-200">
+        <nav className="p-4 space-y-4 custom-scrollbar overflow-y-auto flex-1">
+          {sections.map((section) => (
+            <div key={section.title} className="space-y-1">
+              <div className="px-3 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
+                {section.title}
+              </div>
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end={item.path === '/' || item.path === '/admin' || item.path === '/dashboard' || item.path === '/authority'}
+                    className={({ isActive }) =>
+                      `flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition ${
+                        isActive
+                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-200'
+                      }`
+                    }
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
             </div>
-            {section.items.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === '/' || item.path === '/admin' || item.path === '/dashboard' || item.path === '/authority'}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition ${
-                      isActive
-                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`
-                  }
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{item.label}</span>
-                </NavLink>
-              );
-            })}
-          </div>
-        ))}
-      </nav>
+          ))}
+        </nav>
 
-      <div className="p-4 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 space-y-1">
-        <p className="font-semibold text-slate-700 dark:text-slate-400">ThermalTrace AI Platform</p>
-        <p>SIH Problem Statement SIH26162</p>
-        <p>Operational Satellite Intelligence</p>
-        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800/60">🌱 A Cleaner India • A Safer Tomorrow</p>
-      </div>
-    </aside>
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 space-y-1">
+          <p className="font-semibold text-slate-700 dark:text-slate-400">ThermalTrace AI Platform</p>
+          <p>SIH Problem Statement SIH26162</p>
+          <p>Operational Satellite Intelligence</p>
+          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800/60">🌱 A Cleaner India • A Safer Tomorrow</p>
+        </div>
+      </aside>
+
+      {/* Mobile Navigation Drawer Overlay (<1024px) */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Dark Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            onClick={onCloseMobileMenu}
+          />
+
+          {/* Slide-over Mobile Drawer */}
+          <aside className="relative w-72 max-w-[80vw] bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 flex flex-col h-full shadow-2xl z-10 border-r border-slate-200 dark:border-slate-800">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <span className="font-bold text-sm text-slate-900 dark:text-white">Navigation Menu</span>
+              <button
+                type="button"
+                onClick={onCloseMobileMenu}
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 focus:outline-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <nav className="p-4 space-y-4 custom-scrollbar overflow-y-auto flex-1">
+              {sections.map((section) => (
+                <div key={section.title} className="space-y-1">
+                  <div className="px-3 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
+                    {section.title}
+                  </div>
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        onClick={onCloseMobileMenu}
+                        end={item.path === '/' || item.path === '/admin' || item.path === '/dashboard' || item.path === '/authority'}
+                        className={({ isActive }) =>
+                          `flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition ${
+                            isActive
+                              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold'
+                              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-200'
+                          }`
+                        }
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span>{item.label}</span>
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              ))}
+            </nav>
+
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 space-y-1">
+              <p className="font-semibold text-slate-700 dark:text-slate-400">ThermalTrace AI Platform</p>
+              <p>SIH Problem Statement SIH26162</p>
+              <p>Operational Satellite Intelligence</p>
+              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800/60">🌱 A Cleaner India • A Safer Tomorrow</p>
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
   );
 };

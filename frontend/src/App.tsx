@@ -102,11 +102,13 @@ const PublicLoginRoute: React.FC = () => {
 };
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden select-none transition-colors duration-200">
-      <Navbar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+    <div className="flex flex-col h-screen w-full max-w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-y-hidden select-none transition-colors duration-200">
+      <Navbar onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
+      <div className="flex flex-1 overflow-hidden relative">
+        <Sidebar mobileMenuOpen={isMobileMenuOpen} onCloseMobileMenu={() => setIsMobileMenuOpen(false)} />
         <main className="flex-1 overflow-y-auto relative bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
           {children}
         </main>

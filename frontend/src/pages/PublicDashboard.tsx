@@ -526,89 +526,89 @@ export const PublicDashboardPage: React.FC = () => {
   // DEFAULT PUBLIC / GUEST EXPLORER VIEW
   // =========================================================================
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto min-h-full pb-10 text-slate-900 dark:text-slate-100 select-none bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto min-h-full pb-10 text-slate-900 dark:text-slate-100 select-none bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       {/* Hero Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center space-x-2">
-              <Satellite className="w-7 h-7 text-amber-500" />
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap gap-y-1.5">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center space-x-2">
+              <Satellite className="w-6 h-6 sm:w-7 sm:h-7 text-amber-500 shrink-0" />
               <span>ThermalTrace AI</span>
             </h1>
-            <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2.5 py-0.5 rounded">
+            <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 rounded">
               SIH26162
             </span>
-            <div className="flex items-center space-x-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-0.5 rounded-full text-[11px]">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <div className="flex items-center space-x-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px]">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">LIVE SATELLITE TELEMETRY</span>
             </div>
           </div>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-1">
+          <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mt-1">
             Satellite-Based Industrial Thermal Anomaly Intelligence
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 italic">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 italic break-words">
             "Transforming satellite thermal detections into explainable industrial anomaly intelligence."
           </p>
         </div>
 
         {/* Compact Public Explorer Badge */}
-        <div className="flex items-center space-x-2 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 px-3.5 py-2 rounded-xl text-xs shadow-md">
-          <ShieldCheck className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+        <div className="flex items-center space-x-2 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 px-3 sm:px-3.5 py-2 rounded-xl text-xs shadow-md max-w-full">
+          <ShieldCheck className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
           <div>
-            <span className="font-bold text-slate-800 dark:text-slate-200 block">PUBLIC EXPLORER • READ ONLY</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400">Explore live satellite intelligence. Operational actions require an authorized role.</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200 block text-xs">PUBLIC EXPLORER • READ ONLY</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Explore live satellite intelligence. Operational actions require an authorized role.</span>
           </div>
         </div>
       </div>
 
       {/* Compact Live Metrics Bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl flex items-center space-x-3 transition-colors duration-200">
-          <div className="p-2.5 bg-amber-500/10 rounded-lg border border-amber-500/20">
-            <Flame className="w-5 h-5 text-amber-500" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl flex items-center space-x-3 transition-colors duration-200">
+          <div className="p-2 sm:p-2.5 bg-amber-500/10 rounded-lg border border-amber-500/20 shrink-0">
+            <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">NASA FIRMS Detections</span>
-            <span className="text-xl font-extrabold text-slate-900 dark:text-white">
+            <span className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
               {loading ? '--' : (analytics?.total_detections ?? hotspots.length)}
             </span>
             <span className="text-[10px] text-slate-500 block">VIIRS NOAA-20 & NOAA-21</span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl flex items-center space-x-3 transition-colors duration-200">
-          <div className="p-2.5 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
-            <Factory className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl flex items-center space-x-3 transition-colors duration-200">
+          <div className="p-2 sm:p-2.5 bg-cyan-500/10 rounded-lg border border-cyan-500/20 shrink-0">
+            <Factory className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600 dark:text-cyan-400" />
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Industrial Facilities</span>
-            <span className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400">
+            <span className="text-lg sm:text-xl font-extrabold text-cyan-600 dark:text-cyan-400">
               {loading ? '--' : facilities.length}
             </span>
             <span className="text-[10px] text-slate-500 block">Monitored Infra Registry</span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl flex items-center space-x-3 transition-colors duration-200">
-          <div className="p-2.5 bg-purple-500/10 rounded-lg border border-purple-500/20">
-            <Activity className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl flex items-center space-x-3 transition-colors duration-200">
+          <div className="p-2 sm:p-2.5 bg-purple-500/10 rounded-lg border border-purple-500/20 shrink-0">
+            <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Industrial Thermal Candidates</span>
-            <span className="text-xl font-extrabold text-purple-600 dark:text-purple-400">
+            <span className="text-lg sm:text-xl font-extrabold text-purple-600 dark:text-purple-400">
               {loading ? '--' : (analytics?.industrial_candidates ?? 0)}
             </span>
             <span className="text-[10px] text-slate-500 block">High Evidence Confidence</span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl flex items-center space-x-3 transition-colors duration-200">
-          <div className="p-2.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-            <Database className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl flex items-center space-x-3 transition-colors duration-200">
+          <div className="p-2 sm:p-2.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20 shrink-0">
+            <Database className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Satellite Acquisition</span>
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block truncate">
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block truncate max-w-[150px]">
               {analytics?.data_freshness?.firms_status || (health?.firms_integration?.last_sync_status ? `Status: ${health.firms_integration.last_sync_status}` : 'N/A')}
             </span>
             <span className="text-[10px] text-slate-500 block">Near-Real-Time Stream</span>
@@ -618,22 +618,22 @@ export const PublicDashboardPage: React.FC = () => {
 
       {/* Main Hero: Large Interactive Map View */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xl space-y-0 transition-colors duration-200">
-        <div className="p-4 bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div className="p-3 sm:p-4 bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
-            <Layers className="w-5 h-5 text-amber-500" />
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Interactive Geospatial Thermal Anomaly Map</h2>
+            <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
+            <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Interactive Geospatial Thermal Anomaly Map</h2>
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono hidden md:inline">• Click any hotspot marker to inspect explainable AI evidence</span>
           </div>
           <button
             onClick={() => navigate('/observations')}
-            className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center space-x-1 cursor-pointer"
+            className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center space-x-1 cursor-pointer shrink-0"
           >
-            <span>View All Observations</span>
+            <span className="whitespace-nowrap">View All</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="h-[480px] sm:h-[520px] w-full relative">
+        <div className="h-[360px] sm:h-[520px] w-full relative">
           <MapView
             hotspots={hotspots}
             industrialSites={facilities}

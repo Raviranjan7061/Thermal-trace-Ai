@@ -310,7 +310,7 @@ export const LoginPage: React.FC = () => {
   const roleHeader = getRoleHeader();
 
   return (
-    <div className={`relative w-screen min-h-screen overflow-y-auto custom-scrollbar bg-slate-950 font-sans text-slate-100 select-none box-border`}>
+    <div className="relative w-full max-w-full min-h-screen overflow-x-hidden overflow-y-auto custom-scrollbar bg-slate-950 font-sans text-slate-100 select-none box-border">
       {/* 1. Full-Bleed High-Resolution Industrial Refinery Image (100% viewport) */}
       <img
         src={refineryBg}
@@ -323,22 +323,22 @@ export const LoginPage: React.FC = () => {
       <div className="fixed inset-0 bg-gradient-to-b from-slate-950/60 via-transparent to-slate-950/80 pointer-events-none" />
 
       {/* 3. Main Interactive Viewport Layer */}
-      <div className={`relative z-10 ${mode === 'signup' ? 'min-h-screen py-4' : 'h-full'} flex flex-col justify-between p-4 sm:p-6 xl:p-8`}>
+      <div className="relative z-10 min-h-screen lg:h-full flex flex-col justify-between p-3 sm:p-6 xl:p-8 max-w-full py-3 sm:py-4">
         
         {/* TOP BRANDING & TELEMETRY HEADER */}
-        <div className="flex items-center justify-between shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-tr from-orange-600 via-amber-500 to-orange-500 p-2 rounded-2xl shadow-lg shadow-orange-500/20 text-white flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+        <div className="flex items-center justify-between shrink-0 mb-2 sm:mb-0">
+          <div className="flex items-center space-x-2.5 sm:space-x-3">
+            <div className="bg-gradient-to-tr from-orange-600 via-amber-500 to-orange-500 p-1.5 sm:p-2 rounded-xl sm:rounded-2xl shadow-lg shadow-orange-500/20 text-white flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
             </div>
 
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xl font-extrabold text-white tracking-tight">ThermalTrace</span>
-                <span className="text-xl font-extrabold text-orange-500">AI</span>
-                <span className="bg-slate-900/90 text-amber-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-amber-500/40">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                <span className="text-lg sm:text-xl font-extrabold text-white tracking-tight">ThermalTrace</span>
+                <span className="text-lg sm:text-xl font-extrabold text-orange-500">AI</span>
+                <span className="bg-slate-900/90 text-amber-400 text-[9px] sm:text-[10px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded border border-amber-500/40">
                   SIH26162
                 </span>
               </div>
@@ -363,22 +363,22 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* MIDDLE GRID SECTION: LEFT HERO + RIGHT FLOATING CARD */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start my-2 sm:my-3">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start my-1 sm:my-3 max-w-full">
           
           {/* LEFT HERO CONTENT & ROLE CARDS (Col-span 7) */}
-          <div className="lg:col-span-7 xl:col-span-7 flex flex-col justify-between h-full py-1 sm:py-2 max-w-2xl">
+          <div className="lg:col-span-7 xl:col-span-7 flex flex-col justify-between lg:h-full py-1 sm:py-2 max-w-2xl w-full">
             {/* Top Hero Section */}
             <div>
               {/* Category Tag Badge */}
-              <div className="mb-2 sm:mb-2.5">
-                <div className="inline-flex items-center space-x-2 bg-slate-950/85 px-3 py-1.5 rounded-full border border-orange-500/40 text-xs font-mono font-bold tracking-widest text-orange-400 uppercase backdrop-blur-md shadow-lg">
-                  <Flame className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-                  <span>SATELLITE THERMAL INTELLIGENCE • SIH26162</span>
+              <div className="mb-1.5 sm:mb-2.5">
+                <div className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-slate-950/85 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-orange-500/40 text-[10px] sm:text-xs font-mono font-bold tracking-wider sm:tracking-widest text-orange-400 uppercase backdrop-blur-md shadow-lg max-w-full">
+                  <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-500 shrink-0" />
+                  <span className="truncate">SATELLITE THERMAL INTELLIGENCE • SIH26162</span>
                 </div>
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-[clamp(30px,4.2vh,46px)] font-extrabold tracking-tight leading-[1.08] max-w-[540px]">
+              <h1 className="text-[clamp(24px,3.8vh,46px)] sm:text-[clamp(30px,4.2vh,46px)] font-extrabold tracking-tight leading-[1.1] sm:leading-[1.08] max-w-[540px]">
                 <span className="text-white block">Detect thermal</span>
                 <span className="text-white block">anomalies. Investigate</span>
                 <span className="text-orange-500 font-extrabold block">
@@ -387,13 +387,13 @@ export const LoginPage: React.FC = () => {
               </h1>
 
               {/* Subtitle Description */}
-              <p className="mt-2.5 text-[clamp(12px,1.4vh,15px)] text-slate-200 font-normal leading-relaxed max-w-lg">
+              <p className="mt-1.5 sm:mt-2.5 text-xs sm:text-[clamp(12px,1.4vh,15px)] text-slate-200 font-normal leading-relaxed max-w-lg">
                 Real satellite thermal observations, industrial context, historical analysis and evidence-based investigation for abnormal heat activity.
               </p>
             </div>
 
             {/* Bottom Role Cards Section */}
-            <div className="mt-auto pt-3">
+            <div className="mt-auto pt-2.5 sm:pt-3 w-full">
               <RoleExplanationCards
                 activeRoleMode={activeRoleMode}
                 onSelectRole={handleSelectRole}
@@ -402,45 +402,45 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {/* RIGHT FLOATING TRANSLUCENT LOGIN CARD (Col-span 5) */}
-          <div className="lg:col-span-5 xl:col-span-5 flex justify-center lg:justify-end items-start h-full">
-            <div className="w-full max-w-[465px] bg-white/95 backdrop-blur-xl border border-white/60 rounded-[28px] p-6 sm:p-7 space-y-3.5 shadow-2xl text-slate-900 flex flex-col justify-between transition-all duration-200 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
+          <div className="lg:col-span-5 xl:col-span-5 flex justify-center lg:justify-end items-start lg:h-full w-full">
+            <div className="w-full max-w-[465px] bg-white/95 backdrop-blur-xl border border-white/60 rounded-2xl sm:rounded-[28px] p-4 sm:p-7 space-y-3 sm:space-y-3.5 shadow-2xl text-slate-900 flex flex-col justify-between transition-all duration-200 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto custom-scrollbar">
               
               {/* Card Header Row: Branding Logo + Live NASA FIRMS Indicator */}
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                <div className="flex items-center space-x-2 text-xs font-bold text-slate-900">
-                  <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600">
-                    <Flame className="w-4 h-4" />
+              <div className="flex items-center justify-between pb-2 sm:pb-2.5 border-b border-slate-100 gap-2">
+                <div className="flex items-center space-x-1.5 sm:space-x-2 text-xs font-bold text-slate-900">
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-orange-500/10 text-orange-600 shrink-0">
+                    <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <span className="font-extrabold tracking-tight text-sm">ThermalTrace AI</span>
+                  <span className="font-extrabold tracking-tight text-xs sm:text-sm whitespace-nowrap">ThermalTrace AI</span>
                 </div>
 
-                <div className="flex items-center space-x-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full border border-emerald-200/80 font-bold text-[10px] shadow-xs">
+                <div className="flex items-center space-x-1 sm:space-x-1.5 bg-emerald-50 text-emerald-700 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-emerald-200/80 font-bold text-[9px] sm:text-[10px] shadow-xs shrink-0">
                   <span className="relative flex h-2 w-2">
                     <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isLive ? 'bg-emerald-400' : 'bg-amber-400'} opacity-75`} />
                     <span className={`relative inline-flex rounded-full h-2 w-2 ${isLive ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                   </span>
-                  <span>Live Data • NASA FIRMS</span>
+                  <span className="whitespace-nowrap">Live Data • NASA FIRMS</span>
                 </div>
               </div>
 
               {/* Role Title & Badge Header */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border font-mono ${roleHeader.badgeClass}`}>
+                  <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full border font-mono ${roleHeader.badgeClass}`}>
                     {roleHeader.badge}
                   </span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-snug">
                   {roleHeader.title}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-normal">
                   {roleHeader.subtitle}
                 </p>
               </div>
 
               {/* Error Alert */}
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-2.5 text-xs text-red-700">
+                <div className="p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-2.5 text-xs text-red-700 break-words leading-relaxed">
                   <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
                   <span>{error}</span>
                 </div>
