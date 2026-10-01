@@ -179,7 +179,7 @@ export const LoginPage: React.FC = () => {
 
     try {
       // Real Firebase Google Popup Authentication
-      const authenticatedUser = await loginWithGoogle();
+      const authenticatedUser = await loginWithGoogle(activeRoleMode);
       const userRole = (authenticatedUser.role || 'user').toLowerCase();
 
       // Strict post-login role mismatch check using REAL authenticated user role

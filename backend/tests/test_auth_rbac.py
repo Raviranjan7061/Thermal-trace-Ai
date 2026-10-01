@@ -258,3 +258,60 @@ def test_google_login_new_user():
     db.commit()
     db.close()
 
+
+def test_google_login_with_requested_role():
+    # 1. New user requested analyst role
+    resp1 = client.post("/api/auth/google", json={
+        "email": "new_google_analyst@gmail.com",
+        "full_name": "New Google Analyst",
+        "firebase_uid": "fb_uid_analyst_1",
+        "requested_role": "analyst"
+    })
+    assert resp1.status_code == 200
+    data1 = resp1.json()
+    assert data1["user"]["role"] == "analyst"
+
+    # 2. Same email later signs in with another requested_role -> retains authoritative DB role 'analyst'
+    resp2 = client.post("/api/auth/google", json={
+        "email": "new_google_analyst@gmail.com",
+        "full_name": "New Google Analyst",
+        "firebase_uid": "fb_uid_analyst_1",
+        "requested_role": "user"
+    })
+    assert resp2.status_code == 200
+    data2 = resp2.json()
+    assert data2["user"]["role"] == "analyst"
+
+    # 3. New user requested authority role
+    resp3 = client.post("/api/auth/google", json={
+        "email": "new_google_authority@gmail.com",
+        "full_name": "New Google Authority",
+        "firebase_uid": "fb_uid_authority_1",
+        "requested_role": "authority"
+    })
+    assert resp3.status_code == 200
+    data3 = resp3.json()
+    assert data3["user"]["role"] == "authority"
+
+    # 4. New user requested admin role -> blocked from public admin creation, assigned 'user'
+    resp4 = client.post("/api/auth/google", json={
+        "email": "malicious_admin_attempt@gmail.com",
+        "full_name": "Malicious Admin",
+        "firebase_uid": "fb_uid_admin_1",
+        "requested_role": "admin"
+    })
+    assert resp4.status_code == 200
+    data4 = resp4.json()
+    assert data4["user"]["role"] == "user"
+
+    # Cleanup
+    db = SessionLocal()
+    db.query(User).filter(User.email.in_([
+        "new_google_analyst@gmail.com",
+        "new_google_authority@gmail.com",
+        "malicious_admin_attempt@gmail.com"
+    ])).delete(synchronize_session=False)
+    db.commit()
+    db.close()
+
+

@@ -18,6 +18,7 @@ class GoogleLoginRequest(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
     firebase_uid: Optional[str] = None
+    requested_role: Optional[str] = None
 
 class SignupRequest(BaseModel):
     full_name: str
@@ -209,7 +210,14 @@ def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
             db.refresh(user)
     else:
         full_name = payload.full_name.strip() if payload.full_name else email_clean.split('@')[0]
-        assigned_role = expected_role or "user"
+        req_role = (payload.requested_role or "").strip().lower()
+        allowed_public_roles = {"user", "analyst", "authority"}
+
+        if req_role in allowed_public_roles:
+            assigned_role = expected_role or req_role
+        else:
+            assigned_role = expected_role or "user"
+
         user = User(
             email=email_clean,
             hashed_password=get_password_hash("GOOGLE_SSO_AUTHENTICATED_USER"),

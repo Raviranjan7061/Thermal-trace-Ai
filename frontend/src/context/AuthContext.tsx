@@ -11,7 +11,7 @@ interface AuthContextType {
   role: 'admin' | 'analyst' | 'authority' | 'user' | string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
-  loginWithGoogle: () => Promise<User>;
+  loginWithGoogle: (requestedRole?: string) => Promise<User>;
   signup: (fullName: string, email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -194,7 +194,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return res.user;
   };
 
-  const loginWithGoogle = async (): Promise<User> => {
+  const loginWithGoogle = async (requestedRole?: string): Promise<User> => {
+    // 0. Clear stale backend token to prevent account identity leakage
+    localStorage.removeItem('thermaltrace_token');
+
     // 1. Authenticate with Google via Firebase Auth
     const fbUser = await firebaseAuthService.signInWithGoogle();
     setFirebaseUser(fbUser);
@@ -206,7 +209,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await apiService.googleLogin({
         email,
         full_name: fbUser.displayName || undefined,
-        firebase_uid: fbUser.uid
+        firebase_uid: fbUser.uid,
+        requested_role: requestedRole
       });
 
       localStorage.setItem('thermaltrace_token', res.access_token);
@@ -215,7 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.warn('Backend Google login validation failed, using resilient role resolution:', err);
       const emailLower = email.toLowerCase();
-      const assignedRole = KNOWN_ROLE_MAP[emailLower] || 'user';
+      const assignedRole = KNOWN_ROLE_MAP[emailLower] || requestedRole || 'user';
 
       const googleUser: User = {
         id: fbUser.uid,
