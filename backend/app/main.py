@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.database.session import engine, Base, SessionLocal
 from app.workers.sync_worker import seed_industrial_facilities_if_empty, run_firms_synchronization
 from app.api.routers import (
-    health, sync, hotspots, industrial_sites, analytics, alerts, reviews, model, auth, search, watchlists, notifications, authority, admin
+    health, sync, hotspots, industrial_sites, analytics, alerts, reviews, model, auth, search, watchlists, notifications, authority, admin, feedback
 )
 
 logging.basicConfig(
@@ -75,6 +75,7 @@ app.include_router(watchlists.router)
 app.include_router(notifications.router)
 app.include_router(authority.router)
 app.include_router(admin.router)
+app.include_router(feedback.router)
 
 @app.get("/")
 def root_info():

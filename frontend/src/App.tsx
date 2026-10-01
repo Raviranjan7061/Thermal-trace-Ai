@@ -25,6 +25,8 @@ import { ModelPerformancePage } from './pages/ModelPerformance';
 import { SystemHealthPage } from './pages/SystemHealth';
 import { SettingsPage } from './pages/Settings';
 import { TeamPage } from './pages/Team';
+import { FeedbackPage } from './pages/FeedbackPage';
+import { AdminFeedbackPage } from './pages/AdminFeedbackPage';
 
 // Read-Only Feature Pages & Pipeline Operations
 import { LiveObservationsPage } from './pages/LiveObservations';
@@ -411,6 +413,28 @@ export const App: React.FC = () => {
                 <ProtectedRoute>
                   <AppLayout>
                     <SystemHealthPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/feedback"
+              element={
+                <ProtectedRoute allowedRoles={['user', 'analyst', 'authority', 'admin']}>
+                  <AppLayout>
+                    <FeedbackPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/feedback"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AppLayout>
+                    <AdminFeedbackPage />
                   </AppLayout>
                 </ProtectedRoute>
               }

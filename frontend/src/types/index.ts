@@ -353,3 +353,27 @@ export interface AuthoritySummary {
   last_update?: string;
 }
 
+export interface FeedbackItem {
+  id: string;
+  user_id?: string | null;
+  submitter_email: string;
+  submitter_role: string;
+  category: string;
+  title: string;
+  description: string;
+  priority: string;
+  screenshot_data?: string | null;
+  status: string;
+  admin_notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FeedbackSummary {
+  total: number;
+  new_count: number;
+  in_review_count: number;
+  resolved_count: number;
+  items?: FeedbackItem[];
+}
+

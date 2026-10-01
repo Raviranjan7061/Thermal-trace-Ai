@@ -246,3 +246,22 @@ class ModelVersion(Base):
     feature_list = Column(JSON, nullable=True)
     dataset_info = Column(JSON, nullable=True)
     is_active = Column(Boolean, default=True)
+
+class FeedbackItem(Base):
+    __tablename__ = "feedback_items"
+
+    id = Column(String(64), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    submitter_email = Column(String(255), nullable=False, index=True)
+    submitter_role = Column(String(50), nullable=False, default="user") # user, analyst, authority, admin
+    category = Column(String(100), nullable=False) # Bug, UI/UX Issue, Data Issue, Feature Suggestion, Performance Issue, Other
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    priority = Column(String(20), default="Medium", nullable=False) # Low, Medium, High
+    screenshot_data = Column(Text, nullable=True) # Optional Base64 image data URL
+    status = Column(String(50), default="NEW", nullable=False, index=True) # NEW, IN_REVIEW, RESOLVED
+    admin_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now, index=True)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    user = relationship("User")

@@ -22,7 +22,9 @@ import {
   ArrowRightLeft,
   FileText,
   Radio,
-  Settings
+  Settings,
+  MessageSquare,
+  Inbox
 } from 'lucide-react';
 
 const authorityNavSections = [
@@ -42,6 +44,7 @@ const authorityNavSections = [
       { path: '/authority/audit', label: 'Regulatory Audit Trail', icon: FileText },
       { path: '/data-sources', label: 'Data Sources Transparency', icon: Database },
       { path: '/system-health', label: 'System Health', icon: Activity },
+      { path: '/feedback', label: 'Report Issue / Feedback', icon: MessageSquare },
       { path: '/settings', label: 'General Settings', icon: Settings },
     ]
   }
@@ -75,6 +78,7 @@ const userNavSections = [
       { path: '/data-sources', label: 'Data Sources Transparency', icon: Database },
       { path: '/model-performance', label: 'Evidence Intelligence', icon: Cpu },
       { path: '/system-health', label: 'System Health', icon: Activity },
+      { path: '/feedback', label: 'Report Issue / Feedback', icon: MessageSquare },
       { path: '/settings', label: 'General Settings', icon: Settings },
     ]
   }
@@ -110,6 +114,7 @@ const analystNavSections = [
       { path: '/data-sources', label: 'Data Sources Transparency', icon: Database },
       { path: '/model-performance', label: 'Evidence Intelligence', icon: Cpu },
       { path: '/system-health', label: 'System Health', icon: Activity },
+      { path: '/feedback', label: 'Report Issue / Feedback', icon: MessageSquare },
       { path: '/settings', label: 'General Settings', icon: Settings },
     ]
   }
@@ -120,6 +125,7 @@ const adminNavSections = [
     title: 'ADMINISTRATION',
     items: [
       { path: '/admin', label: 'Admin Console', icon: Shield },
+      { path: '/admin/feedback', label: 'Feedback Inbox', icon: Inbox },
       { path: '/admin/users', label: 'User & Role Management', icon: Users },
       { path: '/admin/audit', label: 'Security Audit Logs', icon: FileText },
     ]
@@ -132,6 +138,7 @@ const adminNavSections = [
       { path: '/pipeline-status', label: 'Data Pipeline / FIRMS Status', icon: Radio },
       { path: '/alerts', label: 'Operational Alerts', icon: AlertOctagon },
       { path: '/analytics', label: 'Dynamic Analytics', icon: BarChart3 },
+      { path: '/feedback', label: 'Report Issue / Feedback', icon: MessageSquare },
       { path: '/settings', label: 'General Settings', icon: Settings },
     ]
   },

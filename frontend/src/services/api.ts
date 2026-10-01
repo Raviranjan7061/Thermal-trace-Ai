@@ -16,7 +16,9 @@ import {
   SimilarEvent,
   FacilityMonitoringProfile,
   AuthoritySummary,
-  AdminAuditLog
+  AdminAuditLog,
+  FeedbackItem,
+  FeedbackSummary
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -295,6 +297,38 @@ export const apiService = {
 
   async getAuthorityAuditLogs(limit = 100): Promise<AdminAuditLog[]> {
     const res = await client.get<AdminAuditLog[]>('/api/authority/audit-logs', { params: { limit } });
+    return res.data;
+  },
+
+  // Feedback & Issue Reporting
+  async submitFeedback(data: {
+    category: string;
+    title: string;
+    description: string;
+    priority?: string;
+    screenshot_data?: string;
+  }): Promise<FeedbackItem> {
+    const res = await client.post<FeedbackItem>('/api/feedback', data);
+    return res.data;
+  },
+
+  async getMyFeedback(): Promise<FeedbackItem[]> {
+    const res = await client.get<FeedbackItem[]>('/api/feedback/my');
+    return res.data;
+  },
+
+  async getAdminFeedbackInbox(): Promise<FeedbackItem[]> {
+    const res = await client.get<FeedbackItem[]>('/api/feedback');
+    return res.data;
+  },
+
+  async getAdminFeedbackSummary(): Promise<FeedbackSummary> {
+    const res = await client.get<FeedbackSummary>('/api/feedback/summary');
+    return res.data;
+  },
+
+  async updateFeedbackStatus(id: string, data: { status: string; admin_notes?: string }): Promise<FeedbackItem> {
+    const res = await client.patch<FeedbackItem>(`/api/feedback/${id}/status`, data);
     return res.data;
   }
 };

@@ -264,3 +264,38 @@ class AnalyticsOverview(BaseModel):
     daynight_breakdown: Dict[str, Any] = {}
     top_anomalies: List[Dict[str, Any]] = []
     data_freshness: Dict[str, Any] = {}
+
+class FeedbackCreate(BaseModel):
+    category: str
+    title: str
+    description: str
+    priority: Optional[str] = "Medium"
+    screenshot_data: Optional[str] = None
+
+class FeedbackStatusUpdate(BaseModel):
+    status: str
+    admin_notes: Optional[str] = None
+
+class FeedbackResponse(BaseModel):
+    id: str
+    user_id: Optional[str] = None
+    submitter_email: str
+    submitter_role: str
+    category: str
+    title: str
+    description: str
+    priority: str
+    screenshot_data: Optional[str] = None
+    status: str
+    admin_notes: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class FeedbackSummaryResponse(BaseModel):
+    total: int
+    new_count: int
+    in_review_count: int
+    resolved_count: int
+    items: List[FeedbackResponse] = []
