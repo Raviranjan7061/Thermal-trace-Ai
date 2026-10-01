@@ -277,17 +277,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 mt-2 sm:mt-0">
+        <div className="flex items-center space-x-1.5 sm:space-x-3 max-w-full">
           {/* Global Search Bar Button */}
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-950 hover:bg-slate-200/80 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-400 px-3.5 py-1.5 rounded-xl text-xs border border-slate-200 dark:border-slate-800 transition min-w-[220px] md:min-w-[280px] justify-between cursor-pointer"
+            className="flex items-center space-x-1.5 sm:space-x-2 bg-slate-100 dark:bg-slate-950 hover:bg-slate-200/80 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-400 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs border border-slate-200 dark:border-slate-800 transition min-w-0 sm:min-w-[220px] md:min-w-[280px] justify-between cursor-pointer"
           >
-            <div className="flex items-center space-x-2">
-              <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-              <span>Search incidents, facilities, locations...</span>
+            <div className="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
+              <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+              <span className="hidden sm:inline">Search incidents, facilities, locations...</span>
+              <span className="sm:hidden text-[11px] truncate">Search...</span>
             </div>
-            <span className="bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-500 font-mono text-[10px] px-1.5 py-0.5 rounded">
+            <span className="hidden sm:inline-block bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-500 font-mono text-[10px] px-1.5 py-0.5 rounded">
               /
             </span>
           </button>

@@ -481,7 +481,7 @@ export const MapView: React.FC<Props> = ({
                   >
                     <Popup className="custom-leaflet-popup">
                       {/* OUTER POPUP SHELL - MATCHING IMAGE 2 PROPORTIONS */}
-                      <div className="bg-[#0B1120] p-3.5 sm:p-4 text-slate-100 rounded-[14px] w-[340px] shadow-2xl relative border border-slate-800/80">
+                      <div className="bg-[#0B1120] p-3 sm:p-4 text-slate-100 rounded-[14px] w-[340px] max-w-[calc(100vw-32px)] shadow-2xl relative border border-slate-800/80">
                         
                         {/* INNER BORDERED CARD - MANDATORY SEPARATE CARD */}
                         <div className="bg-[#080D1A] border border-slate-700/80 rounded-xl p-3.5 space-y-3">

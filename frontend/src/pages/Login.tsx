@@ -323,7 +323,7 @@ export const LoginPage: React.FC = () => {
       <div className="fixed inset-0 bg-gradient-to-b from-slate-950/60 via-transparent to-slate-950/80 pointer-events-none" />
 
       {/* 3. Main Interactive Viewport Layer */}
-      <div className="relative z-10 min-h-screen lg:h-full flex flex-col justify-between p-3 sm:p-6 xl:p-8 max-w-full py-3 sm:py-4">
+      <div className="relative z-10 min-h-[100dvh] lg:h-full flex flex-col justify-between p-3 sm:p-6 xl:p-8 max-w-full py-3 sm:py-4 pb-12 lg:pb-4">
         
         {/* TOP BRANDING & TELEMETRY HEADER */}
         <div className="flex items-center justify-between shrink-0 mb-2 sm:mb-0">
