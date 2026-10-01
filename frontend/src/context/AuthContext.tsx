@@ -12,7 +12,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
   loginWithGoogle: (requestedRole?: string) => Promise<User>;
-  signup: (fullName: string, email: string, password: string) => Promise<User>;
+  signup: (fullName: string, email: string, password: string, role?: string) => Promise<User>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   isAuthenticated: boolean;
@@ -31,12 +31,6 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
 });
 
-const KNOWN_ROLE_MAP: Record<string, string> = {
-  'viratkumar0097@gmail.com': 'analyst',
-  'ravi90kumarr12@gmail.com': 'authority',
-  'raviranjan706187@gmail.com': 'admin',
-  'admin@thermaltrace.ai': 'admin'
-};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -148,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const emailLower = (fbUser?.email || email).toLowerCase();
-      const assignedRole = KNOWN_ROLE_MAP[emailLower] || 'user';
+      const assignedRole = 'user';
 
       // Exchange authenticated email/uid with backend googleLogin to obtain a valid backend JWT access_token
       try {
@@ -177,9 +171,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (fullName: string, email: string, password: string): Promise<User> => {
+  const signup = async (fullName: string, email: string, password: string, role?: string): Promise<User> => {
     // 1. Primary Registration: Persist profile in ThermalTrace FastAPI backend API
-    const res = await apiService.signup({ full_name: fullName, email, password });
+    const res = await apiService.signup({ full_name: fullName, email, password, role });
     localStorage.setItem('thermaltrace_token', res.access_token);
     setUser(res.user);
 
@@ -219,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.warn('Backend Google login validation failed, using resilient role resolution:', err);
       const emailLower = email.toLowerCase();
-      const assignedRole = KNOWN_ROLE_MAP[emailLower] || requestedRole || 'user';
+      const assignedRole = requestedRole || 'user';
 
       const googleUser: User = {
         id: fbUser.uid,

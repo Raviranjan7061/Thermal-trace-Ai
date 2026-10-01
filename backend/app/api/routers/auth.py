@@ -293,12 +293,18 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
             detail=f"This account is already registered for the {role_display} Workspace. Please sign in through the {role_display} Workspace."
         )
 
-    # CRITICAL SECURITY RULE: Public signup ALWAYS creates role = "user"
+    req_role = (payload.role or "").strip().lower()
+    allowed_public_roles = {"user", "analyst", "authority"}
+    if req_role in allowed_public_roles:
+        assigned_role = req_role
+    else:
+        assigned_role = "user"
+
     new_user = User(
         email=email_clean,
         hashed_password=get_password_hash(payload.password),
         full_name=payload.full_name.strip(),
-        role="user",
+        role=assigned_role,
         is_active=True
     )
 

@@ -238,16 +238,9 @@ export const LoginPage: React.FC = () => {
     setError(null);
 
     try {
-      // Backend forces role = USER for public signup, but for UI reviewer flows, navigate to corresponding workspace
-      const newUser = await signup(signupFullName, signupEmail, signupPassword);
-      
-      if (activeRoleMode === 'authority') {
-        navigate('/authority');
-      } else if (activeRoleMode === 'analyst') {
-        navigate('/');
-      } else {
-        navigate('/dashboard');
-      }
+      const newUser = await signup(signupFullName, signupEmail, signupPassword, activeRoleMode);
+      const userRole = (newUser.role || 'user').toLowerCase();
+      navigate(getRoleLandingPath(userRole));
     } catch (err: any) {
       const detail = err.response?.data?.detail || 'Registration failed. Please try a different email address.';
       setError(detail);

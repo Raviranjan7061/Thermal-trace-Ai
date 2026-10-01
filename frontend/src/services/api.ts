@@ -55,7 +55,7 @@ export const apiService = {
     return res.data;
   },
 
-  async signup(data: { full_name: string; email: string; password: string }): Promise<{ access_token: string; token_type: string; user: User }> {
+  async signup(data: { full_name: string; email: string; password: string; role?: string }): Promise<{ access_token: string; token_type: string; user: User }> {
     const res = await client.post<{ access_token: string; token_type: string; user: User }>('/api/auth/signup', data);
     return res.data;
   },
