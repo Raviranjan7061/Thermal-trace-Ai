@@ -273,9 +273,16 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
 
     existing = db.query(User).filter(User.email == email_clean).first()
     if existing:
+        role_map = {
+            "user": "User",
+            "analyst": "Analyst",
+            "authority": "Authority",
+            "admin": "Admin"
+        }
+        role_display = role_map.get((existing.role or "").lower(), "User")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"An account with email '{email_clean}' already exists."
+            detail=f"This account is already registered for the {role_display} Workspace. Please sign in through the {role_display} Workspace."
         )
 
     # CRITICAL SECURITY RULE: Public signup ALWAYS creates role = "user"

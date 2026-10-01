@@ -131,6 +131,16 @@ export const LoginPage: React.FC = () => {
     return 'USER';
   };
 
+  const formatRoleWorkspaceConflictMessage = (realRole: string): string => {
+    const r = (realRole || '').toLowerCase();
+    const roleName =
+      r === 'admin' ? 'Admin' :
+      r === 'authority' ? 'Authority' :
+      r === 'analyst' ? 'Analyst' :
+      'User';
+    return `This account is already registered for the ${roleName} Workspace. Please sign in through the ${roleName} Workspace.`;
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
@@ -146,10 +156,10 @@ export const LoginPage: React.FC = () => {
       const authenticatedUser = await login(loginEmail, loginPassword);
       const userRole = (authenticatedUser.role || 'user').toLowerCase();
 
-      // Strict post-login role mismatch check
+      // Strict post-login role mismatch check using REAL authenticated user role
       if (userRole !== activeRoleMode) {
         await logout();
-        setError('Invalid credentials or account is not authorized for this workspace.');
+        setError(formatRoleWorkspaceConflictMessage(userRole));
         return;
       }
 
@@ -172,10 +182,10 @@ export const LoginPage: React.FC = () => {
       const authenticatedUser = await loginWithGoogle();
       const userRole = (authenticatedUser.role || 'user').toLowerCase();
 
-      // Strict post-login role mismatch check
+      // Strict post-login role mismatch check using REAL authenticated user role
       if (userRole !== activeRoleMode) {
         await logout();
-        setError('Invalid credentials or account is not authorized for this workspace.');
+        setError(formatRoleWorkspaceConflictMessage(userRole));
         return;
       }
 
