@@ -57,10 +57,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // If backend token is missing, attempt to acquire a fresh JWT token via googleLogin
         if (!token && fbUser.email) {
           try {
+            const storedRole = sessionStorage.getItem('thermaltrace_login_intent') || undefined;
             const res = await apiService.googleLogin({
               email: fbUser.email,
               full_name: fbUser.displayName || undefined,
-              firebase_uid: fbUser.uid
+              firebase_uid: fbUser.uid,
+              requested_role: storedRole
             });
             localStorage.setItem('thermaltrace_token', res.access_token);
             setUser(res.user);
@@ -146,10 +148,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Exchange authenticated email/uid with backend googleLogin to obtain a valid backend JWT access_token
       try {
+        const storedRole = sessionStorage.getItem('thermaltrace_login_intent') || undefined;
         const backendAuth = await apiService.googleLogin({
           email: emailLower,
           full_name: fbUser?.displayName || email.split('@')[0],
-          firebase_uid: fbUser?.uid
+          firebase_uid: fbUser?.uid,
+          requested_role: storedRole
         });
         localStorage.setItem('thermaltrace_token', backendAuth.access_token);
         setUser(backendAuth.user);
@@ -189,6 +193,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = async (requestedRole?: string): Promise<User> => {
+    if (requestedRole) {
+      sessionStorage.setItem('thermaltrace_login_intent', requestedRole);
+    }
+    const activeRole = requestedRole || sessionStorage.getItem('thermaltrace_login_intent') || undefined;
+
     // 0. Clear stale backend token to prevent account identity leakage
     localStorage.removeItem('thermaltrace_token');
 
@@ -204,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         full_name: fbUser.displayName || undefined,
         firebase_uid: fbUser.uid,
-        requested_role: requestedRole
+        requested_role: activeRole
       });
 
       localStorage.setItem('thermaltrace_token', res.access_token);

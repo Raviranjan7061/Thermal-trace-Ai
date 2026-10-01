@@ -80,10 +80,12 @@ export const PipelineStatusPage: React.FC = () => {
       const token = localStorage.getItem('thermaltrace_token');
       if (!token && auth.currentUser && auth.currentUser.email) {
         try {
+          const storedRole = sessionStorage.getItem('thermaltrace_login_intent') || undefined;
           const authRes = await apiService.googleLogin({
             email: auth.currentUser.email,
             full_name: auth.currentUser.displayName || undefined,
-            firebase_uid: auth.currentUser.uid
+            firebase_uid: auth.currentUser.uid,
+            requested_role: storedRole
           });
           localStorage.setItem('thermaltrace_token', authRes.access_token);
         } catch (authErr) {

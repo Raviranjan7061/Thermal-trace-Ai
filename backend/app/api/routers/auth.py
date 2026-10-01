@@ -317,7 +317,7 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
         action="PUBLIC_USER_REGISTERED",
         actor_email=new_user.email,
         entity_id=new_user.id,
-        details={"name": new_user.full_name, "assigned_role": "user"}
+        details={"name": new_user.full_name, "assigned_role": assigned_role}
     )
 
     access_token = create_access_token(subject=new_user.id, role=new_user.role)
