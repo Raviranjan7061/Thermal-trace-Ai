@@ -243,6 +243,7 @@ export const PremiumAccessRequired: React.FC<Props> = ({
   };
 
   const [showSubmitPaymentModal, setShowSubmitPaymentModal] = useState(false);
+  const [activeView, setActiveView] = useState<'overview' | 'conversation'>('overview');
 
   const latestSub = statusData?.latest_subscription || null;
   const activeSub = statusData?.is_premium_active ? (statusData.active_subscription || latestSub) : null;
@@ -374,76 +375,117 @@ export const PremiumAccessRequired: React.FC<Props> = ({
         <div className="space-y-5 flex flex-col justify-between">
           {activeSub ? (
             <PremiumConfirmationCard subscription={activeSub} onExploreFeatures={onClose} />
-          ) : discussionSub ? (
+          ) : activeView === 'conversation' && activeSubItem ? (
             <div className="space-y-4 h-full flex flex-col justify-between">
-              <div className="p-4 bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-orange-500/10 border border-amber-500/40 rounded-2xl flex items-center justify-between">
-                <div>
-                  <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center space-x-2">
-                    <Crown className="w-4 h-4 text-amber-500" />
-                    <span>PAYMENT DISCUSSION IN PROGRESS</span>
-                  </h3>
-                  <p className="text-[11px] text-slate-300 font-medium">
-                    Requested: <span className="font-bold text-amber-400">{discussionSub.plan_name}</span> — <span className="font-mono text-amber-400 font-bold">₹{discussionSub.price_inr?.toLocaleString('en-IN')}</span>
-                  </p>
+              <PaymentChatWindow
+                subscriptionId={activeSubItem.id}
+                showPaidButton={activeSubItem.status === 'PAYMENT_DISCUSSION' || activeSubItem.status === 'PAYMENT_ACTION_REQUIRED'}
+                onPaidClick={() => setShowSubmitPaymentModal(true)}
+                onBack={() => setActiveView('overview')}
+              />
+            </div>
+          ) : discussionSub ? (
+            <div className="space-y-4 p-6 bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-orange-500/10 border border-amber-500/40 rounded-2xl shadow-xl flex flex-col justify-between h-full">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 text-xs font-black text-amber-500 uppercase tracking-wider">
+                  <Crown className="w-5 h-5 text-amber-500 animate-pulse" />
+                  <span>PAYMENT DISCUSSION IN PROGRESS</span>
                 </div>
+
+                <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl space-y-2">
+                  <div className="text-xs text-slate-300">
+                    Requested Plan: <span className="font-extrabold text-amber-400">{discussionSub.plan_name}</span>
+                  </div>
+                  <div className="text-xs text-slate-300">
+                    Amount: <span className="font-mono font-extrabold text-amber-400">₹{discussionSub.price_inr?.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="text-xs text-slate-400 font-medium pt-1">
+                    Your private payment conversation with System Administrator is active.
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('conversation')}
+                  className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer uppercase tracking-wider shadow-md flex items-center justify-center space-x-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>OPEN PAYMENT CONVERSATION</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setShowSubmitPaymentModal(true)}
-                  className="py-2 px-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer uppercase tracking-wider shadow-md shrink-0"
+                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs transition cursor-pointer uppercase tracking-wider shadow-md flex items-center justify-center space-x-2"
                 >
-                  I Have Paid
+                  <span>I HAVE PAID</span>
                 </button>
               </div>
-
-              <PaymentChatWindow
-                subscriptionId={discussionSub.id}
-                showPaidButton={true}
-                onPaidClick={() => setShowSubmitPaymentModal(true)}
-              />
             </div>
           ) : verificationPendingSub ? (
-            <div className="space-y-4 h-full flex flex-col justify-between">
-              <div className="p-4 bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-orange-500/10 border border-amber-500/40 rounded-2xl space-y-2">
+            <div className="space-y-4 p-6 bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-orange-500/10 border border-amber-500/40 rounded-2xl shadow-xl flex flex-col justify-between h-full">
+              <div className="space-y-4">
                 <div className="flex items-center space-x-2 text-xs font-black text-amber-400 uppercase tracking-wider">
-                  <Clock className="w-4 h-4 animate-spin text-amber-500" />
+                  <Clock className="w-5 h-5 animate-spin text-amber-500" />
                   <span>👑 PAYMENT VERIFICATION PENDING</span>
                 </div>
-                <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                  Your payment details (Ref/UTR: <span className="font-mono text-amber-400 font-bold">{verificationPendingSub.utr_reference}</span>) have been submitted and are waiting for manual Admin verification.
-                </p>
+
+                <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl space-y-2">
+                  <div className="text-xs text-slate-300">
+                    Transaction Reference / UTR: <span className="font-mono font-extrabold text-amber-400">{verificationPendingSub.utr_reference}</span>
+                  </div>
+                  <div className="text-xs text-slate-400 font-medium pt-1">
+                    Your payment details have been submitted and are waiting for manual Admin verification.
+                  </div>
+                </div>
               </div>
 
-              <PaymentChatWindow
-                subscriptionId={verificationPendingSub.id}
-                showPaidButton={false}
-              />
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('conversation')}
+                  className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer uppercase tracking-wider shadow-md flex items-center justify-center space-x-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>OPEN PAYMENT CONVERSATION</span>
+                </button>
+              </div>
             </div>
           ) : actionRequiredSub ? (
-            <div className="space-y-4 h-full flex flex-col justify-between">
-              <div className="p-4 bg-red-500/15 border border-red-500/40 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 text-xs font-black text-red-400 uppercase tracking-wider">
-                    <AlertCircle className="w-4 h-4 text-red-500" />
-                    <span>ACTION REQUIRED BY ADMIN</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowSubmitPaymentModal(true)}
-                    className="py-1.5 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer uppercase tracking-wider shadow-md"
-                  >
-                    Update Details
-                  </button>
+            <div className="space-y-4 p-6 bg-red-500/15 border border-red-500/40 rounded-2xl shadow-xl flex flex-col justify-between h-full">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 text-xs font-black text-red-400 uppercase tracking-wider">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <span>ACTION REQUIRED BY ADMIN</span>
                 </div>
-                <p className="text-xs text-red-200 font-semibold">
-                  Reason: {actionRequiredSub.resubmit_reason || 'Please check your transaction reference and resubmit.'}
-                </p>
+
+                <div className="p-4 bg-slate-900/80 border border-red-500/30 rounded-xl space-y-2">
+                  <div className="text-xs text-red-200 font-semibold">
+                    Reason: {actionRequiredSub.resubmit_reason || 'Please check your transaction reference and resubmit.'}
+                  </div>
+                </div>
               </div>
 
-              <PaymentChatWindow
-                subscriptionId={actionRequiredSub.id}
-                showPaidButton={true}
-                onPaidClick={() => setShowSubmitPaymentModal(true)}
-              />
+              <div className="space-y-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('conversation')}
+                  className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer uppercase tracking-wider shadow-md flex items-center justify-center space-x-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>OPEN PAYMENT CONVERSATION</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowSubmitPaymentModal(true)}
+                  className="w-full py-2.5 px-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black text-xs transition cursor-pointer uppercase tracking-wider shadow-md flex items-center justify-center space-x-2"
+                >
+                  <span>RESUBMIT PAYMENT INFORMATION</span>
+                </button>
+              </div>
             </div>
           ) : pendingSub ? (
             isChangingPlan ? (

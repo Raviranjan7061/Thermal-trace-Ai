@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, ShieldAlert, Lock, User, Shield, Sparkles, RefreshCw } from 'lucide-react';
+import { Send, ShieldAlert, Lock, User, Shield, Sparkles, RefreshCw, ArrowLeft } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { SubscriptionMessage } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -8,12 +8,14 @@ interface Props {
   subscriptionId: string;
   onPaidClick?: () => void;
   showPaidButton?: boolean;
+  onBack?: () => void;
 }
 
 export const PaymentChatWindow: React.FC<Props> = ({
   subscriptionId,
   onPaidClick,
-  showPaidButton = false
+  showPaidButton = false,
+  onBack
 }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<SubscriptionMessage[]>([]);
@@ -77,6 +79,23 @@ export const PaymentChatWindow: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col h-[420px] bg-slate-900/90 dark:bg-slate-950/90 border border-slate-700/60 dark:border-amber-500/30 rounded-2xl overflow-hidden shadow-xl">
+      {/* HEADER WITH BACK BUTTON IF ONBACK PASSED */}
+      {onBack && (
+        <div className="bg-slate-900 border-b border-slate-800 p-2.5 px-4 flex items-center justify-between shrink-0">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center space-x-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>← Back to Overview</span>
+          </button>
+          <span className="text-[10px] font-mono font-semibold text-slate-400 uppercase tracking-wider">
+            Payment Conversation
+          </span>
+        </div>
+      )}
+
       {/* SECURITY WARNING HEADER */}
       <div className="bg-amber-500/15 border-b border-amber-500/30 p-2.5 px-4 flex items-center space-x-2 text-[11px] text-amber-300 font-semibold shrink-0">
         <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
