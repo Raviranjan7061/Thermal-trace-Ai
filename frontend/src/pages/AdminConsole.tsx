@@ -507,7 +507,7 @@ export const AdminConsolePage: React.FC = () => {
 
               {/* Status Filters */}
               <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
-                {(['ALL', 'PENDING', 'PAYMENT_DISCUSSION', 'PAYMENT_VERIFICATION_PENDING', 'PAYMENT_ACTION_REQUIRED', 'ACTIVE', 'REJECTED', 'EXPIRED'] as const).map((filter) => {
+                {(['ALL', 'PENDING', 'PAYMENT_DISCUSSION', 'PAYMENT_VERIFICATION_PENDING', 'PAYMENT_ACTION_REQUIRED', 'ACTIVE', 'CANCELLED', 'REJECTED', 'EXPIRED'] as const).map((filter) => {
                   const count =
                     filter === 'ALL'
                       ? subscriptions.length
@@ -609,6 +609,10 @@ export const AdminConsolePage: React.FC = () => {
                           ) : sub.status === 'PAYMENT_ACTION_REQUIRED' ? (
                             <span className="bg-red-500/15 text-red-500 border border-red-500/40 px-2 py-0.5 rounded text-[10px] font-bold">
                               ACTION REQUIRED
+                            </span>
+                          ) : sub.status === 'CANCELLED' ? (
+                            <span className="bg-slate-500/15 text-slate-400 border border-slate-500/30 px-2 py-0.5 rounded text-[10px] font-bold">
+                              CANCELLED BY USER
                             </span>
                           ) : sub.status === 'REJECTED' ? (
                             <span className="bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30 px-2 py-0.5 rounded text-[10px] font-bold">

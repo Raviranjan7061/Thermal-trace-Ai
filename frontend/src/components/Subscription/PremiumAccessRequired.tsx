@@ -245,6 +245,9 @@ export const PremiumAccessRequired: React.FC<Props> = ({
 
   const [showSubmitPaymentModal, setShowSubmitPaymentModal] = useState(false);
   const [activeView, setActiveView] = useState<'overview' | 'conversation' | 'plans'>('overview');
+  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
+  const [cancellingSub, setCancellingSub] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   const latestSub = statusData?.latest_subscription || null;
   const activeSub = statusData?.is_premium_active ? (statusData.active_subscription || latestSub) : null;
@@ -254,8 +257,25 @@ export const PremiumAccessRequired: React.FC<Props> = ({
   const actionRequiredSub = latestSub?.status === 'PAYMENT_ACTION_REQUIRED' ? latestSub : null;
   const rejectedSub = latestSub?.status === 'REJECTED' ? latestSub : null;
   const expiredSub = statusData?.status === 'EXPIRED' ? latestSub : null;
+  const cancelledSub = latestSub?.status === 'CANCELLED' ? latestSub : null;
   const selectedNewPlan = PLANS.find(p => p.id === pendingNewPlanId) || PLANS[0];
   const activeSubItem = discussionSub || verificationPendingSub || actionRequiredSub || pendingSub;
+
+  const handleConfirmCancelRequest = async () => {
+    if (!activeSubItem || cancellingSub) return;
+    setCancellingSub(true);
+    setCancelError(null);
+    try {
+      await apiService.cancelSubscriptionRequest(activeSubItem.id);
+      setShowCancelConfirmModal(false);
+      setActiveView('overview');
+      await fetchStatus();
+    } catch (err: any) {
+      setCancelError(err.response?.data?.detail || 'Failed to cancel subscription request.');
+    } finally {
+      setCancellingSub(false);
+    }
+  };
 
 
   const contentMarkup = (
@@ -321,6 +341,16 @@ export const PremiumAccessRequired: React.FC<Props> = ({
           <div>
             <div className="font-bold text-cyan-800 dark:text-cyan-200">Premium Access Expired</div>
             <div>Your previous Premium subscription has expired. Select a plan below to request Premium access again.</div>
+          </div>
+        </div>
+      )}
+
+      {cancelledSub && (
+        <div className="p-4 bg-slate-500/10 border border-slate-500/30 rounded-xl text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center space-x-3">
+          <Info className="w-5 h-5 shrink-0 text-slate-400" />
+          <div>
+            <div className="font-bold text-slate-800 dark:text-slate-200">Previous Request Cancelled</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400">Your previous subscription request was cancelled. You may select a plan below to submit a new request.</div>
           </div>
         </div>
       )}
@@ -453,7 +483,7 @@ export const PremiumAccessRequired: React.FC<Props> = ({
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="space-y-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setActiveView('overview')}
@@ -461,6 +491,23 @@ export const PremiumAccessRequired: React.FC<Props> = ({
                 >
                   <span>RETURN TO PAYMENT DISCUSSION</span>
                 </button>
+
+                {activeSubItem.status === 'PAYMENT_VERIFICATION_PENDING' ? (
+                  <p className="text-[11px] text-amber-400 font-semibold text-center pt-1">
+                    Payment verification is already pending. Please contact Admin before cancelling this request.
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCancelError(null);
+                      setShowCancelConfirmModal(true);
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 font-bold text-xs transition cursor-pointer flex items-center justify-center space-x-1.5"
+                  >
+                    <span>CANCEL SUBSCRIPTION REQUEST</span>
+                  </button>
+                )}
               </div>
             </div>
           ) : discussionSub ? (
@@ -1055,6 +1102,66 @@ export const PremiumAccessRequired: React.FC<Props> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* CANCEL SUBSCRIPTION REQUEST CONFIRMATION MODAL */}
+      {showCancelConfirmModal && activeSubItem && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-[800] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 text-xs select-none">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">Cancel Premium Request?</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCancelConfirmModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+              This will stop your current Premium subscription request and payment discussion.
+            </p>
+
+            <div className="p-3 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+              <div className="text-[10px] text-slate-500 font-semibold uppercase">Current Request</div>
+              <div className="text-xs font-black text-amber-500">
+                {activeSubItem.plan_name} — ₹{activeSubItem.price_inr?.toLocaleString('en-IN')}
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-normal">
+              Your existing payment conversation will be preserved as read-only and this request cannot continue.
+            </p>
+
+            {cancelError && (
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs font-semibold">
+                {cancelError}
+              </div>
+            )}
+
+            <div className="pt-2 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setShowCancelConfirmModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
+              >
+                Keep Request
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCancelRequest}
+                disabled={cancellingSub}
+                className="px-5 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black disabled:opacity-50 cursor-pointer shadow-md uppercase tracking-wider text-[11px]"
+              >
+                {cancellingSub ? 'Cancelling...' : 'Confirm Cancellation'}
+              </button>
+            </div>
           </div>
         </div>
       )}

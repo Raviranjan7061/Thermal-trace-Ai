@@ -398,6 +398,11 @@ export const apiService = {
   async verifyAndActivatePayment(subscriptionId: string): Promise<SubscriptionItem> {
     const res = await client.post<SubscriptionItem>(`/api/subscriptions/${subscriptionId}/verify-and-activate`);
     return res.data;
+  },
+
+  async cancelSubscriptionRequest(subscriptionId: string): Promise<SubscriptionItem> {
+    const res = await client.post<SubscriptionItem>(`/api/subscriptions/${subscriptionId}/cancel`);
+    return res.data;
   }
 };
 

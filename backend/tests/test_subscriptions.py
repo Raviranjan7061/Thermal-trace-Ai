@@ -453,3 +453,64 @@ def test_payment_conversation_and_manual_verification_workflow(setup_sub_test_us
         db.close()
 
 
+def test_cancel_subscription_workflow(setup_sub_test_users):
+    db = SessionLocal()
+    try:
+        user1_id = setup_sub_test_users["user1_id"]
+        db.query(Subscription).filter(Subscription.user_id == user1_id).delete(synchronize_session=False)
+        db.commit()
+    finally:
+        db.close()
+
+    user1_token = setup_sub_test_users["user1"]
+    user2_token = setup_sub_test_users["user2"]
+    admin_token = setup_sub_test_users["admin"]
+
+    user1_headers = {"Authorization": f"Bearer {user1_token}"}
+    user2_headers = {"Authorization": f"Bearer {user2_token}"}
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+
+    # 1. User1 requests subscription
+    req_resp = client.post("/api/subscriptions/request", json={"plan_id": "monthly"}, headers=user1_headers)
+    assert req_resp.status_code == 201
+    sub_id = req_resp.json()["id"]
+
+    # 2. User2 attempts to cancel User1's subscription -> 403 Forbidden
+    forbidden_resp = client.post(f"/api/subscriptions/{sub_id}/cancel", headers=user2_headers)
+    assert forbidden_resp.status_code == 403
+
+    # 3. Admin starts payment conversation -> status becomes PAYMENT_DISCUSSION
+    start_resp = client.post(f"/api/subscriptions/{sub_id}/start-conversation", headers=admin_headers)
+    assert start_resp.status_code == 200
+    assert start_resp.json()["status"] == "PAYMENT_DISCUSSION"
+
+    # 4. User1 cancels the payment discussion
+    cancel_resp = client.post(f"/api/subscriptions/{sub_id}/cancel", headers=user1_headers)
+    assert cancel_resp.status_code == 200
+    assert cancel_resp.json()["status"] == "CANCELLED"
+
+    # 5. Check messages preserved and system event appended
+    msg_resp = client.get(f"/api/subscriptions/{sub_id}/messages", headers=user1_headers)
+    assert msg_resp.status_code == 200
+    msgs = msg_resp.json()
+    assert len(msgs) >= 2
+    assert any(m["message_text"] == "Subscription request cancelled by User." for m in msgs)
+
+    # 6. User1 attempts to post message on cancelled request -> 400 Bad Request
+    post_msg_resp = client.post(f"/api/subscriptions/{sub_id}/messages", json={"message_text": "hello"}, headers=user1_headers)
+    assert post_msg_resp.status_code == 400
+
+    # 7. User1 attempts to submit payment on cancelled request -> 400 Bad Request
+    submit_pay_resp = client.post(f"/api/subscriptions/{sub_id}/submit-payment", json={"utr_reference": "12345678"}, headers=user1_headers)
+    assert submit_pay_resp.status_code == 400
+
+    # 8. User1 can create a NEW subscription request after cancellation
+    new_req_resp = client.post("/api/subscriptions/request", json={"plan_id": "yearly"}, headers=user1_headers)
+    assert new_req_resp.status_code == 201
+    new_sub = new_req_resp.json()
+    assert new_sub["id"] != sub_id
+    assert new_sub["status"] == "PENDING"
+    assert new_sub["subscription_code"] != req_resp.json()["subscription_code"]
+
+
+

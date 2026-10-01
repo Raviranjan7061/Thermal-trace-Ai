@@ -308,6 +308,9 @@ def post_subscription_message(
     if user_role != "admin" and sub.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not authorized to participate in this payment conversation.")
 
+    if sub.status in ["CANCELLED", "REJECTED", "EXPIRED"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Messages cannot be posted to a {sub.status.lower()} request.")
+
     text_clean = (payload.message_text or "").strip()
     if not text_clean:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Message text cannot be empty.")
@@ -446,6 +449,52 @@ def request_payment_resubmit(
         message_text=f"Resubmission Required: {reason}"
     )
     db.add_all([sys_msg, admin_msg])
+    db.commit()
+    db.refresh(sub)
+    return sub
+
+
+@router.post("/api/subscriptions/{subscription_id}/cancel", response_model=SubscriptionResponse)
+def cancel_subscription_request(
+    subscription_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    sub = db.query(Subscription).filter(Subscription.id == subscription_id).first()
+    if not sub:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subscription request not found.")
+
+    user_role = (current_user.role or "").lower()
+    if user_role != "user":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only standard users can cancel subscription requests.")
+
+    if sub.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not authorized to cancel this subscription request.")
+
+    if sub.status == "PAYMENT_VERIFICATION_PENDING":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Payment verification is already pending. Please contact Admin before cancelling this request."
+        )
+
+    if sub.status not in ["PENDING", "PAYMENT_DISCUSSION", "PAYMENT_ACTION_REQUIRED"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cancellation is not allowed in current status '{sub.status}'."
+        )
+
+    now = utc_now()
+    sub.status = "CANCELLED"
+    sub.updated_at = now
+
+    sys_msg = SubscriptionMessage(
+        subscription_id=sub.id,
+        sender_id=None,
+        sender_email=None,
+        sender_role="system",
+        message_text="Subscription request cancelled by User."
+    )
+    db.add(sys_msg)
     db.commit()
     db.refresh(sub)
     return sub
