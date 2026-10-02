@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { changeAppLanguage, SupportedLanguageCode, SUPPORTED_LANGUAGES } from '../../i18n/config';
 import { useAuth } from '../../context/AuthContext';
 import { apiService } from '../../services/api';
 import { SystemHealth } from '../../types';
@@ -21,7 +23,8 @@ import {
   Moon,
   Monitor,
   Check,
-  Menu
+  Menu,
+  Globe
 } from 'lucide-react';
 import { NotificationItem } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
@@ -29,6 +32,7 @@ import { useTheme } from '../../context/ThemeContext';
 
 
 const NotificationCenterDropdown: React.FC = () => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -78,7 +82,7 @@ const NotificationCenterDropdown: React.FC = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 p-2 rounded-xl border border-slate-300 dark:border-slate-800 transition cursor-pointer"
-        title="System Notifications"
+        title={t('header.notifications', 'System Notifications')}
       >
         <Bell className="w-4 h-4 text-amber-500 dark:text-amber-400" />
         {unreadCount > 0 && (
@@ -93,7 +97,7 @@ const NotificationCenterDropdown: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5">
             <div className="flex items-center space-x-2">
               <Bell className="w-4 h-4 text-amber-500 dark:text-amber-400" />
-              <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100">System Notifications</span>
+              <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100">{t('header.notifications', 'System Notifications')}</span>
             </div>
             {unreadCount > 0 && (
               <button
@@ -102,7 +106,7 @@ const NotificationCenterDropdown: React.FC = () => {
                 className="text-[11px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center space-x-1 font-semibold transition cursor-pointer disabled:opacity-50"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
-                <span>{loading ? 'Marking...' : 'Mark all read'}</span>
+                <span>{loading ? t('common.loading') : t('header.markAllRead', 'Mark all read')}</span>
               </button>
             )}
           </div>
@@ -112,9 +116,9 @@ const NotificationCenterDropdown: React.FC = () => {
               <div className="py-6 px-4 text-center text-slate-500 dark:text-slate-400">
                 <div className="flex flex-col items-center justify-center space-y-1.5">
                   <Bell className="w-6 h-6 text-slate-400 dark:text-slate-600 mb-1" />
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">No new system notifications</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">{t('header.noNotifications', 'No new system notifications')}</span>
                   <span className="text-[10px] text-slate-500 max-w-xs leading-relaxed">
-                    Real-time satellite detection & operational alert notifications will appear here.
+                    {t('header.noNotificationsSub', 'Real-time satellite detection & operational alert notifications will appear here.')}
                   </span>
                 </div>
               </div>
@@ -175,7 +179,7 @@ const NotificationCenterDropdown: React.FC = () => {
                         )}
                       </div>
                       {!n.is_read && (
-                        <span className="text-cyan-600 dark:text-cyan-400 font-semibold text-[10px]">Unread • Click to read</span>
+                        <span className="text-cyan-600 dark:text-cyan-400 font-semibold text-[10px]">{t('header.unreadClickToRead', 'Unread • Click to read')}</span>
                       )}
                     </div>
                   </div>
@@ -194,6 +198,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
+  const { t, i18n } = useTranslation();
   const { user, role, logout } = useAuth();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [health, setHealth] = useState<SystemHealth | null>(null);
@@ -285,8 +290,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
           >
             <div className="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
               <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-              <span className="hidden sm:inline">Search incidents, facilities, locations...</span>
-              <span className="sm:hidden text-[11px] truncate">Search...</span>
+              <span className="hidden sm:inline">{t('header.searchPlaceholder', 'Search incidents, facilities, locations...')}</span>
+              <span className="sm:hidden text-[11px] truncate">{t('common.search')}...</span>
             </div>
             <span className="hidden sm:inline-block bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-500 font-mono text-[10px] px-1.5 py-0.5 rounded">
               /
@@ -299,7 +304,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
             className="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 transition cursor-pointer"
           >
             <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
-            <span className="hidden md:inline">Compare Events</span>
+            <span className="hidden md:inline">{t('header.compareEvents', 'Compare Events')}</span>
           </button>
 
           {/* Authority Briefing Button (Authority & Admin only) */}
@@ -310,7 +315,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
               title="Open Regulatory Authority Situational Awareness Briefing"
             >
               <ShieldAlert className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
-              <span className="hidden md:inline">Authority Briefing</span>
+              <span className="hidden md:inline">{t('header.authorityBriefing', 'Authority Briefing')}</span>
             </button>
           )}
 
@@ -326,7 +331,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
               }`}
             />
             <span className="text-slate-800 dark:text-slate-200 font-semibold text-[11px] hidden sm:inline">
-              {backendOffline ? 'Backend Offline' : health?.status === 'Operational' ? 'Backend Live' : 'Connecting...'}
+              {backendOffline ? t('header.backendOffline', 'Backend Offline') : health?.status === 'Operational' ? t('header.backendLive', 'Backend Live') : t('common.loading')}
             </span>
           </div>
 
@@ -339,7 +344,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
               title="Trigger manual NASA FIRMS satellite data synchronization"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-amber-500 dark:text-amber-400' : ''}`} />
-              <span>{syncing ? 'Syncing...' : 'Sync FIRMS'}</span>
+              <span>{syncing ? t('header.syncing', 'Syncing...') : t('header.syncFirms', 'Sync FIRMS')}</span>
             </button>
           )}
 
@@ -359,6 +364,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
               <Sun className="w-4 h-4 text-amber-600" />
             )}
           </button>
+
+          {/* Language Quick Switcher */}
+          <div className="relative flex items-center">
+            <select
+              value={i18n.language || 'en'}
+              onChange={(e) => changeAppLanguage(e.target.value as SupportedLanguageCode)}
+              className="bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 py-1.5 px-2 rounded-xl border border-slate-300 dark:border-slate-800 text-xs font-bold transition cursor-pointer focus:outline-none focus:border-amber-500"
+              aria-label="Select Language"
+            >
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.nativeName}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Authenticated User Role Badge */}
           {user ? (

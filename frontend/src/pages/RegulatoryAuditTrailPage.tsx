@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { AdminAuditLog } from '../types';
 import {
   FileText,
@@ -12,7 +13,18 @@ import {
   ChevronRight
 } from 'lucide-react';
 
+const maskEmail = (email?: string | null): string => {
+  if (!email) return 'System';
+  if (email === 'System') return 'System';
+  if (!email.includes('@')) return email;
+
+  const [local, domain] = email.split('@');
+  const visible = local.slice(0, Math.min(3, local.length));
+  return `${visible}****@${domain}`;
+};
+
 export const RegulatoryAuditTrailPage: React.FC = () => {
+  const { role } = useAuth();
   const [auditLogs, setAuditLogs] = useState<AdminAuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -205,7 +217,9 @@ export const RegulatoryAuditTrailPage: React.FC = () => {
                     <td className="py-3 px-4">
                       <span className="font-bold text-amber-600 dark:text-amber-400">{log.action}</span>
                     </td>
-                    <td className="py-3 px-4 text-slate-800 dark:text-slate-200">{log.actor_email || 'System'}</td>
+                    <td className="py-3 px-4 text-slate-800 dark:text-slate-200">
+                      {role === 'admin' ? (log.actor_email || 'System') : maskEmail(log.actor_email)}
+                    </td>
                     <td className="py-3 px-4 text-slate-500 dark:text-slate-400 text-[11px] uppercase">{log.entity_type}</td>
                     <td className="py-3 px-4 text-slate-500 dark:text-slate-400 text-[11px]">
                       {log.entity_id ? log.entity_id.substring(0, 18) : 'N/A'}

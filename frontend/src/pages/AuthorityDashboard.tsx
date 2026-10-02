@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -28,17 +29,33 @@ import {
   Maximize2
 } from 'lucide-react';
 import { apiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { AuthoritySummary, Hotspot, IndustrialFacility } from '../types';
+
+const maskEmail = (email?: string | null): string => {
+  if (!email) return 'System';
+  if (email === 'System') return 'System';
+  if (!email.includes('@')) return email;
+
+  const [local, domain] = email.split('@');
+  const visible = local.slice(0, Math.min(3, local.length));
+  return `${visible}****@${domain}`;
+};
 import { MapView } from '../components/Dashboard/MapView';
+import { generateAuthorityPdfReport } from '../services/authorityPdfReport';
 
 export const AuthorityDashboardPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const { role } = useAuth();
   const [summary, setSummary] = useState<AuthoritySummary | null>(null);
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [industrialSites, setIndustrialSites] = useState<IndustrialFacility[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   // Map overlay toggle states
   const [showHotspots, setShowHotspots] = useState(true);
@@ -82,8 +99,23 @@ export const AuthorityDashboardPage: React.FC = () => {
     fetchSummary();
   }, []);
 
-  const handlePrint = () => {
-    window.print();
+  const handleExportReport = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      await generateAuthorityPdfReport({
+        summary,
+        hotspots,
+        industrialSites,
+      });
+    } catch (err: any) {
+      console.error('Failed to generate Authority PDF report:', err);
+      setExportError('Failed to generate PDF report. Please try again.');
+      setTimeout(() => setExportError(null), 5000);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Strict High/Critical priority incidents filter derived from real backend summary
@@ -166,14 +198,21 @@ export const AuthorityDashboardPage: React.FC = () => {
           </div>
 
           <button
-            onClick={handlePrint}
-            className="flex items-center space-x-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold border border-cyan-400/30 transition cursor-pointer shadow-lg shadow-cyan-950/50"
+            onClick={handleExportReport}
+            disabled={isExporting || loading}
+            className="flex items-center space-x-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold border border-cyan-400/30 transition cursor-pointer shadow-lg shadow-cyan-950/50 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            <Printer className="w-4 h-4" />
-            <span>Export Report</span>
+            <FileText className={`w-4 h-4 ${isExporting ? 'animate-pulse text-amber-300' : ''}`} />
+            <span>{isExporting ? 'Generating Report...' : 'Export Report'}</span>
           </button>
         </div>
       </div>
+
+      {exportError && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs px-4 py-2.5 rounded-xl font-semibold flex items-center justify-between animate-fade-in">
+          <span>{exportError}</span>
+        </div>
+      )}
 
       {loading ? (
         <div className="py-24 text-center text-slate-500 dark:text-slate-400 text-sm flex flex-col items-center justify-center space-y-3">
@@ -744,7 +783,9 @@ export const AuthorityDashboardPage: React.FC = () => {
                     paginatedAuditLogs.map((log) => (
                       <tr key={log.audit_id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition">
                         <td className="p-3 font-bold text-cyan-600 dark:text-cyan-400">{log.action}</td>
-                        <td className="p-3 text-slate-800 dark:text-slate-200">{log.actor_email || 'System'}</td>
+                        <td className="p-3 text-slate-800 dark:text-slate-200">
+                          {role === 'admin' ? (log.actor_email || 'System') : maskEmail(log.actor_email)}
+                        </td>
                         <td className="p-3 text-slate-500 dark:text-slate-400 uppercase text-[10px]">{log.entity_type}</td>
                         <td className="p-3 text-slate-500 dark:text-slate-400 text-[10px]">
                           {log.entity_id ? `${log.entity_id.substring(0, 18)}...` : 'N/A'}

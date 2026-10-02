@@ -65,6 +65,11 @@ export const apiService = {
     return res.data;
   },
 
+  async updateNotificationEmailPreference(enabled: boolean): Promise<User> {
+    const res = await client.patch<User>('/api/auth/me/notification-email', { enabled });
+    return res.data;
+  },
+
   async logout(): Promise<{ message: string }> {
     try {
       const res = await client.post('/api/auth/logout');

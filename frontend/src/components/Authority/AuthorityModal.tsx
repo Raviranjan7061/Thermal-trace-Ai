@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { X, ShieldAlert, AlertTriangle, FileText, CheckCircle2, Clock, Printer, Activity } from 'lucide-react';
 import { apiService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { AuthoritySummary } from '../../types';
+
+const maskEmail = (email?: string | null): string => {
+  if (!email) return 'System';
+  if (email === 'System') return 'System';
+  if (!email.includes('@')) return email;
+
+  const [local, domain] = email.split('@');
+  const visible = local.slice(0, Math.min(3, local.length));
+  return `${visible}****@${domain}`;
+};
 
 interface Props {
   isOpen: boolean;
@@ -9,6 +20,7 @@ interface Props {
 }
 
 export const AuthorityModal: React.FC<Props> = ({ isOpen, onClose }) => {
+  const { role } = useAuth();
   const [summary, setSummary] = useState<AuthoritySummary | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -190,7 +202,9 @@ export const AuthorityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                           summary.audit_trail.map((log) => (
                             <tr key={log.audit_id} className="hover:bg-slate-900/50 transition">
                               <td className="p-3 font-semibold text-cyan-400">{log.action}</td>
-                              <td className="p-3 text-slate-300">{log.actor_email}</td>
+                              <td className="p-3 text-slate-300">
+                                {role === 'admin' ? (log.actor_email || 'System') : maskEmail(log.actor_email)}
+                              </td>
                               <td className="p-3 text-slate-400 uppercase font-mono text-[10px]">{log.entity_type}</td>
                               <td className="p-3 font-mono text-slate-400 text-[11px]">
                                 {log.entity_id ? log.entity_id.substring(0, 14) : 'N/A'}...

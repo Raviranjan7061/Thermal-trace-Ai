@@ -33,9 +33,14 @@ class UserSchema(BaseModel):
     role: str
     is_active: bool
     created_at: str
+    notification_email: Optional[str] = None
+    email_notifications_enabled: bool = False
 
     class Config:
         from_attributes = True
+
+class NotificationEmailPreferenceRequest(BaseModel):
+    enabled: bool
 
 class LoginResponse(BaseModel):
     access_token: str
@@ -158,7 +163,9 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         full_name=user.full_name,
         role=user.role,
         is_active=user.is_active,
-        created_at=user.created_at.isoformat() if user.created_at else ""
+        created_at=user.created_at.isoformat() if user.created_at else "",
+        notification_email=user.notification_email,
+        email_notifications_enabled=bool(user.email_notifications_enabled)
     )
 
     return LoginResponse(
@@ -253,7 +260,9 @@ def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
         full_name=user.full_name,
         role=user.role,
         is_active=user.is_active,
-        created_at=user.created_at.isoformat() if user.created_at else ""
+        created_at=user.created_at.isoformat() if user.created_at else "",
+        notification_email=user.notification_email,
+        email_notifications_enabled=bool(user.email_notifications_enabled)
     )
 
     return LoginResponse(
@@ -328,7 +337,9 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
         full_name=new_user.full_name,
         role=new_user.role,
         is_active=new_user.is_active,
-        created_at=new_user.created_at.isoformat() if new_user.created_at else ""
+        created_at=new_user.created_at.isoformat() if new_user.created_at else "",
+        notification_email=new_user.notification_email,
+        email_notifications_enabled=bool(new_user.email_notifications_enabled)
     )
 
     return LoginResponse(
@@ -345,7 +356,31 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
         full_name=current_user.full_name,
         role=current_user.role,
         is_active=current_user.is_active,
-        created_at=current_user.created_at.isoformat() if current_user.created_at else ""
+        created_at=current_user.created_at.isoformat() if current_user.created_at else "",
+        notification_email=current_user.notification_email,
+        email_notifications_enabled=bool(current_user.email_notifications_enabled)
+    )
+
+@router.patch("/me/notification-email", response_model=UserSchema)
+def update_notification_email_preference(
+    payload: NotificationEmailPreferenceRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    current_user.email_notifications_enabled = payload.enabled
+    if payload.enabled:
+        current_user.notification_email = current_user.email
+    db.commit()
+    db.refresh(current_user)
+    return UserSchema(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        role=current_user.role,
+        is_active=current_user.is_active,
+        created_at=current_user.created_at.isoformat() if current_user.created_at else "",
+        notification_email=current_user.notification_email,
+        email_notifications_enabled=bool(current_user.email_notifications_enabled)
     )
 
 @router.post("/logout")

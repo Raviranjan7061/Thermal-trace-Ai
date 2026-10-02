@@ -28,6 +28,7 @@ import {
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { Hotspot, TimelineEvent, MultiSatelliteCorrelation, SimilarEvent } from '../../types';
 import { apiService } from '../../services/api';
+import { generateIncidentPdfReport } from '../../services/incidentPdfReport';
 import { EvidenceBadge } from './EvidenceBadge';
 
 interface Props {
@@ -55,6 +56,8 @@ export const HotspotDrawer: React.FC<Props> = ({ hotspot, onClose, onReviewSubmi
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     if (hotspot) {
@@ -99,8 +102,26 @@ export const HotspotDrawer: React.FC<Props> = ({ hotspot, onClose, onReviewSubmi
     }
   };
 
-  const handlePrintReport = () => {
-    window.print();
+  const handlePrintReport = async () => {
+    if (isGeneratingPdf || !hotspot) return;
+    setIsGeneratingPdf(true);
+    setPdfError(null);
+    try {
+      await generateIncidentPdfReport({
+        hotspot,
+        reportData,
+        multiSatData,
+        historyData,
+        timelineData,
+        similarEvents,
+      });
+    } catch (err: any) {
+      console.error('Failed to generate incident PDF brief:', err);
+      setPdfError('Failed to generate PDF brief. Please try again.');
+      setTimeout(() => setPdfError(null), 5000);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (
@@ -589,12 +610,19 @@ export const HotspotDrawer: React.FC<Props> = ({ hotspot, onClose, onReviewSubmi
               </h4>
               <button
                 onClick={handlePrintReport}
-                className="flex items-center space-x-1 bg-cyan-600 hover:bg-cyan-500 text-white px-2.5 py-1 rounded text-xs transition font-semibold"
+                disabled={isGeneratingPdf}
+                className="flex items-center space-x-1 bg-cyan-600 hover:bg-cyan-500 text-white px-2.5 py-1 rounded text-xs transition font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <Download className="w-3.5 h-3.5" />
-                <span>Print PDF Brief</span>
+                <Download className={`w-3.5 h-3.5 ${isGeneratingPdf ? 'animate-pulse text-amber-300' : ''}`} />
+                <span>{isGeneratingPdf ? 'Generating PDF...' : 'Print PDF Brief'}</span>
               </button>
             </div>
+
+            {pdfError && (
+              <div className="p-2.5 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 rounded-lg text-xs font-semibold">
+                {pdfError}
+              </div>
+            )}
 
             {reportData ? (
               <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3 font-mono text-[11px] text-slate-800 dark:text-slate-300">

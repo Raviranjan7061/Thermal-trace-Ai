@@ -38,6 +38,14 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["*"]
 
+    # SMTP / External Email Delivery Configuration
+    SMTP_HOST: Union[str, None] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Union[str, None] = None
+    SMTP_PASSWORD: Union[str, None] = None
+    SMTP_FROM_EMAIL: Union[str, None] = None
+    SMTP_TLS: bool = True
+
     model_config = SettingsConfigDict(env_file=[str(ENV_FILE), ".env"], extra="ignore")
 
 settings = Settings()

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Alert } from '../types';
@@ -18,6 +19,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export const AlertsPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const paramPriority = searchParams.get('priority');
@@ -155,9 +157,9 @@ export const AlertsPage: React.FC = () => {
     <div className="p-6 space-y-6 max-w-7xl mx-auto custom-scrollbar overflow-y-auto h-full text-slate-900 dark:text-slate-100 select-none bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Operational Anomaly Alert Intelligence</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('alerts.title')}</h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Backend-driven alert lifecycle management powered by real NASA FIRMS satellite observations and FRP baseline deviation calculations.
+          {t('alerts.subtitle')}
         </p>
       </div>
 

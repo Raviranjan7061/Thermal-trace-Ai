@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Satellite, ShieldCheck, Database, Sun, Cpu } from 'lucide-react';
 import indiaSatelliteHero from '../../assets/india_satellite_hero.jpg';
 import refineryBg from '../../assets/refinery_hero_bg.jpg';
 
 export const HeroIntelligenceBanner: React.FC = () => {
+  const { t } = useTranslation();
   const [timeString, setTimeString] = useState('');
 
   useEffect(() => {

@@ -66,3 +66,29 @@
   border: 1px solid #1e293b !important;
 }
 
+/* Script font fallbacks & safe multi-language typography */
+[lang="hi"] {
+  font-family: system-ui, "Noto Sans Devanagari", "Mangal", sans-serif;
+}
+
+[lang="ta"] {
+  font-family: system-ui, "Noto Sans Tamil", "Latha", sans-serif;
+}
+
+[lang="te"] {
+  font-family: system-ui, "Noto Sans Telugu", "Gautami", sans-serif;
+}
+
+[lang="ur"] {
+  font-family: system-ui, "Noto Nastaliq Urdu", "Noto Sans Arabic", "Urdu Typesetting", sans-serif;
+}
+
+/* Scientific & Data Integrity Protection: Maps, Charts & Numeric metrics remain LTR */
+.leaflet-container,
+.recharts-wrapper,
+.scientific-numeric,
+.font-mono {
+  direction: ltr !important;
+}
+
+

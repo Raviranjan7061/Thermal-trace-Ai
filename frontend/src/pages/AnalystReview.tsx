@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiService } from '../services/api';
 import { AnalystReview } from '../types';
 import { CheckSquare, Clock, UserCheck, FileText } from 'lucide-react';
 
 export const AnalystReviewPage: React.FC = () => {
+  const { t } = useTranslation();
   const [reviews, setReviews] = useState<AnalystReview[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +19,7 @@ export const AnalystReviewPage: React.FC = () => {
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto custom-scrollbar overflow-y-auto h-full text-slate-900 dark:text-slate-100 select-none bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       <div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Analyst Review & Human-in-the-Loop Audit Trail</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">{t('analyst.reviewQueue')}</h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Immutable audit records of analyst evaluations, classification overrides, and field verification requests
         </p>

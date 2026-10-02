@@ -47,8 +47,37 @@ def ensure_subscription_schema_updated(target_engine):
     except Exception as exc:
         logger.warning(f"Idempotent schema migration notice: {exc}")
 
+def ensure_user_notification_schema_updated(target_engine):
+    """
+    Safely adds missing notification_email and email_notifications_enabled columns
+    to the existing 'users' table in an idempotent, non-destructive manner for both SQLite and PostgreSQL.
+    """
+    try:
+        from sqlalchemy import inspect, text
+        inspector = inspect(target_engine)
+        if "users" in inspector.get_table_names():
+            columns = [col["name"] for col in inspector.get_columns("users")]
+            with target_engine.connect() as conn:
+                if "notification_email" not in columns:
+                    logger.info("Adding column 'notification_email' to existing 'users' table...")
+                    try:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN notification_email VARCHAR(255);"))
+                        conn.commit()
+                    except Exception as e:
+                        logger.warning(f"Could not add notification_email column: {e}")
+                if "email_notifications_enabled" not in columns:
+                    logger.info("Adding column 'email_notifications_enabled' to existing 'users' table...")
+                    try:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN email_notifications_enabled BOOLEAN DEFAULT FALSE;"))
+                        conn.commit()
+                    except Exception as e:
+                        logger.warning(f"Could not add email_notifications_enabled column: {e}")
+    except Exception as exc:
+        logger.warning(f"User schema migration notice: {exc}")
+
 # Create database tables and update existing schema
 ensure_subscription_schema_updated(engine)
+ensure_user_notification_schema_updated(engine)
 Base.metadata.create_all(bind=engine)
 
 @asynccontextmanager

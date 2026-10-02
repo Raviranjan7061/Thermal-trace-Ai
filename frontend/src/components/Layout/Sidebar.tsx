@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import {
   Map,
@@ -187,10 +188,61 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onCloseMobileMenu }) => {
+  const { t } = useTranslation();
   const { user, role } = useAuth();
   const userRole = (role || 'analyst').toLowerCase();
   const [isPremiumActive, setIsPremiumActive] = useState<boolean>(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState<boolean>(false);
+
+  const getTranslatedSectionTitle = (title: string) => {
+    switch (title) {
+      case 'REGULATORY OVERSIGHT': return t('sidebar.regulatoryOversight', 'REGULATORY OVERSIGHT');
+      case 'COMPLIANCE & TRACEABILITY': return t('sidebar.complianceTraceability', 'COMPLIANCE & TRACEABILITY');
+      case 'PUBLIC INTELLIGENCE': return t('sidebar.publicIntelligence', 'PUBLIC INTELLIGENCE');
+      case 'INTELLIGENCE TOOLS': return t('sidebar.intelligenceTools', 'INTELLIGENCE TOOLS');
+      case 'PLATFORM': return t('sidebar.platform', 'PLATFORM');
+      case 'PREMIUM ACCESS': return t('sidebar.premiumAccess', 'PREMIUM ACCESS');
+      case 'OPERATIONAL INTELLIGENCE': return t('sidebar.operationalIntelligence', 'OPERATIONAL INTELLIGENCE');
+      case 'INVESTIGATION TOOLS': return t('sidebar.investigationTools', 'INVESTIGATION TOOLS');
+      case 'ADMINISTRATION': return t('sidebar.administration', 'ADMINISTRATION');
+      case 'SYSTEM OPERATIONS': return t('sidebar.systemOperations', 'SYSTEM OPERATIONS');
+      case 'SYSTEM INTELLIGENCE': return t('sidebar.systemIntelligence', 'SYSTEM INTELLIGENCE');
+      default: return title;
+    }
+  };
+
+  const getTranslatedLabel = (path: string, defaultLabel: string) => {
+    switch (path) {
+      case '/dashboard':
+      case '/': return t('nav.publicDashboard');
+      case '/observations': return t('nav.liveObservations');
+      case '/explorer': return t('nav.explorer');
+      case '/alerts': return t('nav.alerts');
+      case '/reviews': return t('nav.analystReview');
+      case '/authority': return t('nav.authorityOversight');
+      case '/authority/audit': return t('nav.auditTrail');
+      case '/industrial-sites': return t('nav.industrialSites');
+      case '/data-sources': return t('nav.dataSources');
+      case '/settings': return t('nav.settings');
+      case '/incidents': return userRole === 'authority' ? t('nav.incidentIntelligence', 'Incident Intelligence') : t('nav.incidents', 'Thermal Incidents');
+      case '/analytics': return t('nav.analytics', 'Dynamic Analytics');
+      case '/system-health': return t('nav.systemHealth', 'System Health');
+      case '/feedback': return t('nav.feedback', 'Report Issue / Feedback');
+      case '/temporal': return t('nav.temporal', 'Temporal Analysis');
+      case '/replay': return t('nav.replay', 'Historical Thermal Replay');
+      case '/multi-satellite': return t('nav.multiSatellite', 'Multi-Satellite Intelligence');
+      case '/compare': return t('nav.compare', 'Incident Comparison');
+      case '/provenance': return t('nav.provenance', 'Data Provenance');
+      case '/model-performance': return t('nav.modelPerformance', 'Evidence Intelligence');
+      case '/watchlists': return t('nav.watchlists', 'Watchlists & AOI');
+      case '/admin': return t('nav.adminConsole', 'Admin Console');
+      case '/admin/feedback': return t('nav.feedbackInbox', 'Feedback Inbox');
+      case '/admin/users': return t('nav.userManagement', 'User & Role Management');
+      case '/admin/audit': return t('nav.securityAudit', 'Security Audit Logs');
+      case '/pipeline-status': return t('nav.pipelineStatus', 'Data Pipeline / FIRMS Status');
+      default: return defaultLabel;
+    }
+  };
 
   useEffect(() => {
     if (userRole === 'user' && user) {
@@ -221,7 +273,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onCloseMobileM
       {sections.map((section: any) => (
         <div key={section.title} className="space-y-1">
           <div className="px-3 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
-            {section.title}
+            {getTranslatedSectionTitle(section.title)}
           </div>
 
           {/* Render Upgrade to Premium Card if standard user CTA section */}
@@ -241,14 +293,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onCloseMobileM
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black text-slate-900 dark:text-white truncate group-hover:text-amber-500 transition-colors">
-                        Upgrade to Premium
+                        {t('sidebar.upgradeToPremium', 'Upgrade to Premium')}
                       </span>
                       <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0 font-mono">
-                        11 Features
+                        {t('sidebar.elevenFeatures', '11 Features')}
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
-                      Unlock advanced intelligence tools
+                      {t('sidebar.unlockAdvancedTools', 'Unlock advanced intelligence tools')}
                     </p>
                   </div>
                 </div>
@@ -274,7 +326,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onCloseMobileM
                 >
                   <div className="flex items-center space-x-3 truncate">
                     <Icon className="w-4 h-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate">{getTranslatedLabel(item.path, item.label)}</span>
                   </div>
                 </NavLink>
               );
@@ -297,16 +349,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onCloseMobileM
             <div className="mb-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center space-x-2">
               <Crown className="w-3.5 h-3.5 shrink-0" />
               <div>
-                <div className="font-extrabold text-[10px] uppercase tracking-wider">Premium Active</div>
-                <div className="text-[9px] opacity-80">All advanced features unlocked</div>
+                <div className="font-extrabold text-[10px] uppercase tracking-wider">{t('sidebar.premiumActive', 'Premium Active')}</div>
+                <div className="text-[9px] opacity-80">{t('sidebar.allFeaturesUnlocked', 'All advanced features unlocked')}</div>
               </div>
             </div>
           )}
 
           <p className="font-semibold text-slate-700 dark:text-slate-400">ThermalTrace AI Platform</p>
           <p>SIH Problem Statement SIH26162</p>
-          <p>Operational Satellite Intelligence</p>
-          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800/60">🌱 A Cleaner India • A Safer Tomorrow</p>
+          <p>{t('sidebar.operationalSatIntel', 'Operational Satellite Intelligence')}</p>
+          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800/60">{t('sidebar.tagline', '🌱 A Cleaner India • A Safer Tomorrow')}</p>
         </div>
       </aside>
 
@@ -322,7 +374,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onCloseMobileM
           {/* Slide-over Mobile Drawer */}
           <aside className="relative w-72 max-w-[80vw] bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 flex flex-col h-full shadow-2xl z-10 border-r border-slate-200 dark:border-slate-800">
             <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <span className="font-bold text-sm text-slate-900 dark:text-white">Navigation Menu</span>
+              <span className="font-bold text-sm text-slate-900 dark:text-white">{t('sidebar.navigationMenu', 'Navigation Menu')}</span>
               <button
                 type="button"
                 onClick={onCloseMobileMenu}
@@ -339,16 +391,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onCloseMobileM
                 <div className="mb-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center space-x-2">
                   <Crown className="w-3.5 h-3.5 shrink-0" />
                   <div>
-                    <div className="font-extrabold text-[10px] uppercase tracking-wider">Premium Active</div>
-                    <div className="text-[9px] opacity-80">All advanced features unlocked</div>
+                    <div className="font-extrabold text-[10px] uppercase tracking-wider">{t('sidebar.premiumActive', 'Premium Active')}</div>
+                    <div className="text-[9px] opacity-80">{t('sidebar.allFeaturesUnlocked', 'All advanced features unlocked')}</div>
                   </div>
                 </div>
               )}
 
               <p className="font-semibold text-slate-700 dark:text-slate-400">ThermalTrace AI Platform</p>
               <p>SIH Problem Statement SIH26162</p>
-              <p>Operational Satellite Intelligence</p>
-              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800/60">🌱 A Cleaner India • A Safer Tomorrow</p>
+              <p>{t('sidebar.operationalSatIntel', 'Operational Satellite Intelligence')}</p>
+              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800/60">{t('sidebar.tagline', '🌱 A Cleaner India • A Safer Tomorrow')}</p>
             </div>
           </aside>
         </div>

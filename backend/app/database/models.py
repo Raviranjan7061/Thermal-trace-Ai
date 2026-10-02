@@ -21,6 +21,8 @@ class User(Base):
     full_name = Column(String(255), nullable=True)
     role = Column(String(50), default="analyst", nullable=False) # admin, analyst, authority
     is_active = Column(Boolean, default=True)
+    notification_email = Column(String(255), nullable=True)
+    email_notifications_enabled = Column(Boolean, default=False)
     created_at = Column(DateTime, default=utc_now)
 
     reviews = relationship("AnalystReview", back_populates="user")
